@@ -1,0 +1,125 @@
+const Ava = require('./src/Ava.js');
+const Canvas = Ava.Canvas;
+const { Mat4, Vec3 } = require('./src/Mat');
+const VertexArray = require('./src/Renderer/VertexArray');
+
+const c = document.getElementById('view');
+c.width = document.documentElement.clientWidth;
+c.height = document.documentElement.clientHeight;
+
+window.addEventListener("resize", () => {
+  c.width = document.documentElement.clientWidth;
+  c.height = document.documentElement.clientHeight;
+})
+
+const CanvasContext = new Canvas.CanvasContext(c.getContext("2d"));
+
+// Canvas.CanvasApi.DrawLine(CanvasContext, { x: 0, y: 0 }, { x: 50, y: 0 }, { x: 1.0, y: 0, z: 0, w: 1.0 }, 1);
+// Canvas.CanvasApi.DrawLine(CanvasContext, { x: 0, y: 600 }, { x: 0, y: 0 }, { x: 1.0, y: 0, z: 0, w: 1.0 }, 1);
+// Canvas.CanvasApi.DrawLine(CanvasContext, { x: 50, y: 600 }, { x: 0, y: 600 }, { x: 1.0, y: 0, z: 0, w: 1.0 }, 1);
+// Canvas.CanvasApi.DrawLine(CanvasContext, { x: 50, y: 0 }, { x: 50, y: 600 }, { x: 0.0, y: 0, z: 0, w: 1.0 }, 1);
+//Canvas.CanvasApi.DrawLine(CanvasContext, { x: 50, y: 50 }, { x: 1280, y: 720 }, { x: 1.0, y: 0, z: 0, w: 1.0 }, 1);
+
+// const vertices =
+//     [-0.5, -0.5, 0.0,
+//       0.5, -0.5, 0.0,
+//       0.5,  0.5, 0.0,
+//      -0.5,  0.5, 0.0]
+const vertices =
+  [10, 100, 0.0,
+    100, 100, 0.0,
+    100, 10, 0.0,
+    10, 10, 0.0,
+    55, 55, 0.0];
+
+const vertexArray = new VertexArray();
+vertexArray.AddVextexAttrib(0, VertexArray.AvaType.Vec3);
+vertexArray.AddVextexAttrib(1, VertexArray.AvaType.Vec4);
+
+Canvas.CanvasApi.AvaBindVertexArray(CanvasContext, vertexArray);
+let ArrayBuffer = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
+let IndexBuffer = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
+
+const verticesCasa =
+  [
+    100, 100, 100,//0
+    200, 100, 100,//1
+    200, 100, 250,//2
+    100, 100, 250,//3
+    100, 200, 250,//4
+    200, 200, 250,//5
+    200, 200, 100,//6
+    100, 200, 100,//7
+    150, 100, 320,//8
+    150, 200, 320 //9
+  ];
+const indicesVertices =
+  [
+    0, 1,//1
+    1, 2,//2
+    2, 3,//3
+    3, 0,//4
+    3, 4,//5
+    0, 7,//6
+    1, 6,//7
+    2, 5,//8
+    4, 5,//9
+    4, 7,//10
+    7, 6,//11
+    6, 5,//12
+    4, 9,//13
+    5, 9,//14
+    3, 8,//15
+    2, 8,//16
+    8, 9
+  ]
+
+var render = () => {
+
+  Canvas.CanvasApi.AvaBindBuffer(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ARRAY_BUFFER, ArrayBuffer);
+  Canvas.CanvasApi.AvaSetBufferData(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ARRAY_BUFFER, ArrayBuffer, verticesCasa);
+//[0, 4, 4, 1, 1, 2, 2, 4, 4, 3, 3, 0]
+  Canvas.CanvasApi.AvaBindBuffer(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ELEMENT_ARRAY_BUFFER, IndexBuffer);
+  Canvas.CanvasApi.AvaSetBufferData(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ELEMENT_ARRAY_BUFFER, IndexBuffer, indicesVertices);
+
+  Canvas.CanvasApi.AvaDrawElements(CanvasContext, Canvas.CanvasContext.DrawMode.AVA_LINES, 3);
+}
+
+let count = 0;
+let delta = 0;
+let last = 0;
+var frame = function (now) {
+  delta += now - last;
+  last = now;
+  count++;
+
+  if (delta > 1000) {
+    console.log(count);
+    count = 0;
+    delta = 0;
+  }
+
+  //update();
+  CanvasContext.RawContext.clearRect(0, 0, CanvasContext.Width, CanvasContext.Height);
+  Canvas.CanvasApi.DrawCircle(CanvasContext, {x: CanvasContext.Width/2, y: CanvasContext.Height/2}, 2, { x: 0, y: 0, z: 0, w: 1.0 })
+  render();
+  requestAnimationFrame(frame, CanvasContext.RawContext);
+};
+
+frame(0);
+
+let initial = {};
+let end = {};
+
+c.onmousedown = (e) => {
+  initial.x = e.offsetX;
+  initial.y = e.offsetY;
+}
+
+c.onmouseup = (e) => {
+  end.x = e.offsetX;
+  end.y = e.offsetY;
+  Canvas.CanvasApi.DrawLine(CanvasContext, initial, end, { x: 1.0, y: 0, z: 0, w: 1.0 }, 1);
+  //Canvas.CanvasApi.DrawCircle(CanvasContext, initial, Math.sqrt((initial.x - end.x) ** 2 + (initial.y - end.y) ** 2), { x: Math.random(), y: Math.random(), z: Math.random(), w: 1.0 })
+}
+
