@@ -3,6 +3,7 @@ const Canvas = Ava.Canvas;
 const { Mat4, Vec3 } = require('./src/Mat');
 const Camera = require('./src/Renderer/Camera');
 const VertexArray = require('./src/Renderer/VertexArray');
+const GameObject = require('./src/Engine/GameObject');
 
 const c = document.getElementById('view');
 const offscreen = new OffscreenCanvas(document.documentElement.clientWidth, document.documentElement.clientHeight);
@@ -100,15 +101,23 @@ camera.SetView(Mat4.Viewport(-CanvasContext.Width/2, CanvasContext.Width/2, -Can
 
 Canvas.CanvasApi.SetLocation(CanvasContext, 0, camera);
 
+let go = new GameObject();
+go.m_VertexBuffer = ArrayBufferCasa;
+go.m_IndexBuffer = IndexBufferCasa;
+go.m_Vertex = verticesCasa;
+go.m_Index = indicesVertices;
+
 var render = () => {
 
-  Canvas.CanvasApi.AvaBindBuffer(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ARRAY_BUFFER, ArrayBufferCasa);
-  Canvas.CanvasApi.AvaSetBufferData(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ARRAY_BUFFER, ArrayBufferCasa, verticesCasa);
+  // Canvas.CanvasApi.AvaBindBuffer(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ARRAY_BUFFER, ArrayBufferCasa);
+  // Canvas.CanvasApi.AvaSetBufferData(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ARRAY_BUFFER, ArrayBufferCasa, verticesCasa);
   
-  Canvas.CanvasApi.AvaBindBuffer(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ELEMENT_ARRAY_BUFFER, IndexBufferCasa);
-  Canvas.CanvasApi.AvaSetBufferData(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ELEMENT_ARRAY_BUFFER, IndexBufferCasa, indicesVertices);
+  // Canvas.CanvasApi.AvaBindBuffer(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ELEMENT_ARRAY_BUFFER, IndexBufferCasa);
+  // Canvas.CanvasApi.AvaSetBufferData(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ELEMENT_ARRAY_BUFFER, IndexBufferCasa, indicesVertices);
 
-  Canvas.CanvasApi.AvaDrawElements(CanvasContext, Canvas.CanvasContext.DrawMode.AVA_LINES, 3);
+  // Canvas.CanvasApi.AvaDrawElements(CanvasContext, Canvas.CanvasContext.DrawMode.AVA_LINES, 3);
+
+  go.Render();
 
   Canvas.CanvasApi.AvaBindBuffer(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ARRAY_BUFFER, ArrayBufferLinhas);
   Canvas.CanvasApi.AvaSetBufferData(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ARRAY_BUFFER, ArrayBufferLinhas, verticesLinhas);
