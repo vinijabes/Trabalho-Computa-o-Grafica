@@ -232,8 +232,8 @@ module.exports = class CanvasContext {
     }
 
     get RawContext() { return this.m_Context; }
-    get Width() { return this.m_Context.canvas.clientWidth; }
-    get Height() { return this.m_Context.canvas.clientHeight; }
+    get Width() { return this.m_Context.canvas.width; }
+    get Height() { return this.m_Context.canvas.height; }
 
     /**
      * @returns {BufferType}

@@ -17,7 +17,7 @@ var angleY = 0;
 var rotationSpeed = 2;
 
 window.onkeypress = function (e) {
-    switch (e.keyCode) {    
+    switch (e.keyCode) {
         case 97:
             angleY += rotationSpeed;
             break;
@@ -72,6 +72,12 @@ module.exports = class CanvasApi {
     static DrawLine(context, v1, v2, color, size = 1) {
         const dx = v2.x - v1.x;
         const dy = v2.y - v1.y;
+
+        context.RawContext.beginPath();
+        context.RawContext.moveTo(v1.x, v1.y);
+        context.RawContext.lineTo(v2.x, v2.y);
+        context.RawContext.stroke();
+        return;
 
         if (Math.abs(dx) > Math.abs(dy)) {
             for (let i = 0; i < size; i++) {
@@ -143,8 +149,8 @@ module.exports = class CanvasApi {
         let signalX = Math.sign(dest.x - origin.x);
         let signalY = Math.sign(dest.y - origin.y);
 
-        if(signalX < 0) x -= 1;
-        if(signalY < 0) y -= 1;
+        if (signalX < 0) x -= 1;
+        if (signalY < 0) y -= 1;
 
         var err = 2 * dY - dX;
 
@@ -181,8 +187,8 @@ module.exports = class CanvasApi {
 
         var err = 2 * dY - dX;
 
-        if(signalX < 0) x -= 1;
-        if(signalY < 0) y -= 1;
+        if (signalX < 0) x -= 1;
+        if (signalY < 0) y -= 1;
 
         for (let i = 0; i < dX; i++) {
             this.DrawPixel(context, { x, y }, color);
@@ -283,10 +289,11 @@ module.exports = class CanvasApi {
         const translation2 = Mat4.Translation(150, 150, (100 + 320) / 2);
         const cavaleira = Mat4.Cavaleira();
         const cabinet = Mat4.Cabinet();
-        const scaleM = Mat4.Scale(5, 5, 5, 1);
+        const scaleM = Mat4.Scale(1, 1, 1, 0.5);
         const identity = Mat4.Identity();
+        const viewport = Mat4.Viewport(-context.Width, context.Width, -context.Height, context.Height, -1, 1, 0, 0);
 
-        const window = new Window(new Vec2(-context.Width/2, -context.Height/2), new Vec2(context.Width, context.Height));
+        const window = new Window(new Vec2(-context.Width / 2, -context.Height / 2), new Vec2(context.Width, context.Height));
 
         for (let line of lines) {
             v1 = new Vec3((vertexBuffer[line[0] * n + offset]), (vertexBuffer[line[0] * n + 1 + offset]), vertexBuffer[line[0] * n + 2]);
@@ -306,20 +313,27 @@ module.exports = class CanvasApi {
 
             v1 = translation2.multiplyVec3(v1);
             v2 = translation2.multiplyVec3(v2);
-
+            
             v1 = cabinet.multiplyVec3(v1);
-            v2 = cabinet.multiplyVec3(v2);            
+            v2 = cabinet.multiplyVec3(v2);
 
+            //v1 = viewport.multiplyVec3(v1);
+            //v2 = viewport.multiplyVec3(v2);
+
+            //console.log(v1);
             // v1 = v1.multiplyMat3(matrix);
             // v2 = v2.multiplyMat3(matrix);
 
             // let scale = 1;
 
-            v1.x = v1.x/context.Width;
-            v1.y = v1.y/context.Height;
+            v1.x = v1.x / context.Width;
+            v1.y = v1.y / context.Height;
 
-            v2.x = v2.x/context.Width;
-            v2.y = v2.y/context.Height;
+            v2.x = v2.x / context.Width;
+            v2.y = v2.y / context.Height;
+
+            if (!window.Clip(v1, v2)) continue;
+
 
             v1.x = (v1.x / 2 + 0.5) * context.Width;
             v1.y = (-v1.y / 2 + 0.5) * context.Height;
@@ -327,7 +341,6 @@ module.exports = class CanvasApi {
             v2.x = (v2.x / 2 + 0.5) * context.Width;
             v2.y = (-v2.y / 2 + 0.5) * context.Height;
 
-            if(!window.Clip(v1, v2)) continue;
 
             this.DrawLine(context, v1, v2, { x: 1.0, y: 0, z: 0, w: 1.0 });
         }

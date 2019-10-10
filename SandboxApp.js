@@ -4,15 +4,19 @@ const { Mat4, Vec3 } = require('./src/Mat');
 const VertexArray = require('./src/Renderer/VertexArray');
 
 const c = document.getElementById('view');
+const offscreen = new OffscreenCanvas(document.documentElement.clientWidth, document.documentElement.clientHeight);
 c.width = document.documentElement.clientWidth;
 c.height = document.documentElement.clientHeight;
 
 window.addEventListener("resize", () => {
   c.width = document.documentElement.clientWidth;
   c.height = document.documentElement.clientHeight;
+  offscreen.width = c.width;
+  offscreen.height = c.height;
 })
 
-const CanvasContext = new Canvas.CanvasContext(c.getContext("2d"));
+const context = c.getContext('bitmaprenderer');
+const CanvasContext = new Canvas.CanvasContext(offscreen.getContext('2d'));
 
 // Canvas.CanvasApi.DrawLine(CanvasContext, { x: 0, y: 0 }, { x: 50, y: 0 }, { x: 1.0, y: 0, z: 0, w: 1.0 }, 1);
 // Canvas.CanvasApi.DrawLine(CanvasContext, { x: 0, y: 600 }, { x: 0, y: 0 }, { x: 1.0, y: 0, z: 0, w: 1.0 }, 1);
@@ -78,11 +82,13 @@ var render = () => {
 
   Canvas.CanvasApi.AvaBindBuffer(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ARRAY_BUFFER, ArrayBuffer);
   Canvas.CanvasApi.AvaSetBufferData(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ARRAY_BUFFER, ArrayBuffer, verticesCasa);
-//[0, 4, 4, 1, 1, 2, 2, 4, 4, 3, 3, 0]
+  //[0, 4, 4, 1, 1, 2, 2, 4, 4, 3, 3, 0]
   Canvas.CanvasApi.AvaBindBuffer(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ELEMENT_ARRAY_BUFFER, IndexBuffer);
   Canvas.CanvasApi.AvaSetBufferData(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ELEMENT_ARRAY_BUFFER, IndexBuffer, indicesVertices);
 
   Canvas.CanvasApi.AvaDrawElements(CanvasContext, Canvas.CanvasContext.DrawMode.AVA_LINES, 3);
+  let bitmap = offscreen.transferToImageBitmap();
+  context.transferFromImageBitmap(bitmap);
 }
 
 let count = 0;
@@ -101,7 +107,7 @@ var frame = function (now) {
 
   //update();
   CanvasContext.RawContext.clearRect(0, 0, CanvasContext.Width, CanvasContext.Height);
-  Canvas.CanvasApi.DrawCircle(CanvasContext, {x: CanvasContext.Width/2, y: CanvasContext.Height/2}, 2, { x: 0, y: 0, z: 0, w: 1.0 })
+  Canvas.CanvasApi.DrawCircle(CanvasContext, { x: CanvasContext.Width / 2, y: CanvasContext.Height / 2 }, 2, { x: 0, y: 0, z: 0, w: 1.0 })
   render();
   requestAnimationFrame(frame, CanvasContext.RawContext);
 };
@@ -112,13 +118,19 @@ let initial = {};
 let end = {};
 
 c.onmousedown = (e) => {
-  initial.x = e.offsetX;
-  initial.y = e.offsetY;
+  initial.x = e.offsetX - CanvasContext.Width / 2;
+  initial.y = -(e.offsetY - CanvasContext.Height / 2);
 }
 
 c.onmouseup = (e) => {
-  end.x = e.offsetX;
-  end.y = e.offsetY;
+  end.x = e.offsetX - CanvasContext.Width / 2;
+  end.y = -(e.offsetY - CanvasContext.Height / 2);
+
+  indicesVertices.push(verticesCasa.push(initial.x, initial.y, 0) / 3 - 1);
+  indicesVertices.push(verticesCasa.push(end.x, end.y, 0) / 3 - 1);
+
+  console.log(verticesCasa);
+  console.log(indicesVertices);
   Canvas.CanvasApi.DrawLine(CanvasContext, initial, end, { x: 1.0, y: 0, z: 0, w: 1.0 }, 1);
   //Canvas.CanvasApi.DrawCircle(CanvasContext, initial, Math.sqrt((initial.x - end.x) ** 2 + (initial.y - end.y) ** 2), { x: Math.random(), y: Math.random(), z: Math.random(), w: 1.0 })
 }

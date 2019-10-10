@@ -31,7 +31,7 @@ module.exports = class Window {
             code |= status.BOTTOM;
         else if (vec.y > this.position.y + this.size.y)
             code |= status.TOP;
-
+            
         return code;
     }
 
@@ -41,6 +41,7 @@ module.exports = class Window {
      * @param {Vec3} dest 
      */
     Clip(origin, dest) {
+        //console.log(origin, dest);
         let code1 = this._VertexCode(origin);
         let code2 = this._VertexCode(dest);
 

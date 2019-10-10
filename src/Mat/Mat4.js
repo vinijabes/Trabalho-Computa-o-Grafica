@@ -39,19 +39,19 @@ class Mat4 {
         return mat4;
     }
 
-    static Cavaleira(){
+    static Cavaleira() {
         let mat4 = this.Identity();
         mat4.elements[2][2] = 0;
-        mat4.elements[0][2] = Math.cos(45*Math.PI/180);
-        mat4.elements[1][2] = Math.sin(45*Math.PI/180);
+        mat4.elements[0][2] = Math.cos(45 * Math.PI / 180);
+        mat4.elements[1][2] = Math.sin(45 * Math.PI / 180);
         return mat4;
     }
 
-    static Cabinet(){
+    static Cabinet() {
         let mat4 = this.Identity();
         mat4.elements[2][2] = 0;
-        mat4.elements[0][2] = Math.cos(63.4*Math.PI/180)/2;
-        mat4.elements[1][2] = Math.sin(63.4*Math.PI/180)/2;
+        mat4.elements[0][2] = Math.cos(63.4 * Math.PI / 180) / 2;
+        mat4.elements[1][2] = Math.sin(63.4 * Math.PI / 180) / 2;
         return mat4;
     }
 
@@ -101,6 +101,22 @@ class Mat4 {
         mat4.elements[1][1] = y;
         mat4.elements[2][2] = z;
         mat4.elements[3][3] = global;
+
+        return mat4;
+    }
+
+    static Viewport(left, right, bottom, top, near, far, sx, sy) {
+        let mat4 = new Mat4();
+        let ws = right - left;
+        let hs = top - bottom;
+
+        mat4.elements[0][0] = ws/2;
+        mat4.elements[1][1] = hs/2;
+        mat4.elements[2][2] = 1/2;
+        mat4.elements[2][3] = 1/2;
+        mat4.elements[1][3] = (top + bottom)/2;
+        mat4.elements[0][3] = (right + left)/2;
+        mat4.elements[3][3] = 1;
 
         return mat4;
     }
