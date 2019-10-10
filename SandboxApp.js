@@ -55,7 +55,9 @@ const verticesCasa =
     200, 200, 100,//6
     100, 200, 100,//7
     150, 100, 320,//8
-    150, 200, 320 //9
+    150, 200, 320, //9
+    0, 200, 0,
+    0, -200, 0
   ];
 const indicesVertices =
   [
@@ -75,7 +77,8 @@ const indicesVertices =
     5, 9,//14
     3, 8,//15
     2, 8,//16
-    8, 9
+    8, 9,
+    10, 11
   ]
 
 var render = () => {
@@ -87,6 +90,7 @@ var render = () => {
   Canvas.CanvasApi.AvaSetBufferData(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ELEMENT_ARRAY_BUFFER, IndexBuffer, indicesVertices);
 
   Canvas.CanvasApi.AvaDrawElements(CanvasContext, Canvas.CanvasContext.DrawMode.AVA_LINES, 3);
+  Canvas.CanvasApi.SwapBuffer(CanvasContext);
   let bitmap = offscreen.transferToImageBitmap();
   context.transferFromImageBitmap(bitmap);
 }
@@ -100,7 +104,7 @@ var frame = function (now) {
   count++;
 
   if (delta > 1000) {
-    console.log(count);
+    //console.log(count);
     count = 0;
     delta = 0;
   }
@@ -120,18 +124,21 @@ let end = {};
 c.onmousedown = (e) => {
   initial.x = e.offsetX - CanvasContext.Width / 2;
   initial.y = -(e.offsetY - CanvasContext.Height / 2);
+  console.log("X:", e.offsetX - CanvasContext.Width / 2, "Y:", -(e.offsetY - CanvasContext.Height / 2));
 }
 
 c.onmouseup = (e) => {
   end.x = e.offsetX - CanvasContext.Width / 2;
   end.y = -(e.offsetY - CanvasContext.Height / 2);
+  console.log("X:", e.offsetX - CanvasContext.Width / 2, "Y:", -(e.offsetY - CanvasContext.Height / 2));
 
   indicesVertices.push(verticesCasa.push(initial.x, initial.y, 0) / 3 - 1);
   indicesVertices.push(verticesCasa.push(end.x, end.y, 0) / 3 - 1);
-
-  console.log(verticesCasa);
-  console.log(indicesVertices);
-  Canvas.CanvasApi.DrawLine(CanvasContext, initial, end, { x: 1.0, y: 0, z: 0, w: 1.0 }, 1);
+    
+  //Canvas.CanvasApi.DrawLine(CanvasContext, initial, end, { x: 1.0, y: 0, z: 0, w: 1.0 }, 1);
   //Canvas.CanvasApi.DrawCircle(CanvasContext, initial, Math.sqrt((initial.x - end.x) ** 2 + (initial.y - end.y) ** 2), { x: Math.random(), y: Math.random(), z: Math.random(), w: 1.0 })
 }
 
+c.onmousemove = (e) => {
+  //console.log("X:", e.offsetX - CanvasContext.Width / 2, "Y:", -(e.offsetY - CanvasContext.Height / 2));
+}

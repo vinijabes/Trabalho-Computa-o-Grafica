@@ -1,6 +1,6 @@
 const CanvasContext = require('./CanvasContext');
 const { Vec2, Vec3, Vec4, Mat3, Mat4 } = require('../Mat');
-const { Shader, VertexArray, Window } = require('../Renderer');
+const { Shader, VertexArray, Window, Camera } = require('../Renderer');
 
 const BufferType = {
     AVA_ARRAY_BUFFER: 0,
@@ -51,14 +51,25 @@ module.exports = class CanvasApi {
      * 
      * @param {CanvasContext} context 
      */
+    static SwapBuffer(context){
+        //console.log(context.RendererBuffer);
+        context.RawContext.putImageData(context.RendererBuffer, 0, 0);
+        context.RendererBuffer = context.RawContext.createImageData(context.Width, context.Height);
+    }
+
+    /**
+     * 
+     * @param {CanvasContext} context 
+     */
     static DrawPixel(context, position, color) {
-        const id = context.RawContext.createImageData(1, 1);
-        const d = id.data;
-        d[0] = color.x * 255;
-        d[1] = color.y * 255;
-        d[2] = color.z * 255;
-        d[3] = color.w * 255;
-        context.RawContext.putImageData(id, position.x, position.y);
+        //const id = context.RawContext.createImageData(1, 1);
+        const d = context.RendererBuffer.data;
+
+        d[(Math.round(position.y) * Math.floor(context.Width) + Math.round(position.x))*4] = color.x * 255;
+        d[(Math.round(position.y) * Math.floor(context.Width) + Math.round(position.x))*4 + 1] = color.y * 255;
+        d[(Math.round(position.y) * Math.floor(context.Width) + Math.round(position.x))*4 + 2] = color.z * 255;
+        d[(Math.round(position.y) * Math.floor(context.Width) + Math.round(position.x))*4 + 3] = color.w * 255;
+        //context.RawContext.putImageData(id, position.x, position.y);
     }
 
     /**
@@ -72,12 +83,6 @@ module.exports = class CanvasApi {
     static DrawLine(context, v1, v2, color, size = 1) {
         const dx = v2.x - v1.x;
         const dy = v2.y - v1.y;
-
-        context.RawContext.beginPath();
-        context.RawContext.moveTo(v1.x, v1.y);
-        context.RawContext.lineTo(v2.x, v2.y);
-        context.RawContext.stroke();
-        return;
 
         if (Math.abs(dx) > Math.abs(dy)) {
             for (let i = 0; i < size; i++) {
@@ -293,29 +298,35 @@ module.exports = class CanvasApi {
         const identity = Mat4.Identity();
         const viewport = Mat4.Viewport(-context.Width, context.Width, -context.Height, context.Height, -1, 1, 0, 0);
 
+        const camera = new Camera();
+        camera.SetProjection(cavaleira);
+
         const window = new Window(new Vec2(-context.Width / 2, -context.Height / 2), new Vec2(context.Width, context.Height));
 
         for (let line of lines) {
             v1 = new Vec3((vertexBuffer[line[0] * n + offset]), (vertexBuffer[line[0] * n + 1 + offset]), vertexBuffer[line[0] * n + 2]);
             v2 = new Vec3((vertexBuffer[line[1] * n + offset]), (vertexBuffer[line[1] * n + 1 + offset]), vertexBuffer[line[1] * n + 2]);
 
-            v1 = translation1.multiplyVec3(v1);
-            v2 = translation1.multiplyVec3(v2);
+            // v1 = translation1.multiplyVec3(v1);
+            // v2 = translation1.multiplyVec3(v2);
 
-            v1 = rotationX.multiplyVec3(v1);
-            v2 = rotationX.multiplyVec3(v2);
+            // v1 = rotationX.multiplyVec3(v1);
+            // v2 = rotationX.multiplyVec3(v2);
 
-            v1 = rotationY.multiplyVec3(v1);
-            v2 = rotationY.multiplyVec3(v2);
+            // v1 = rotationY.multiplyVec3(v1);
+            // v2 = rotationY.multiplyVec3(v2);
 
-            v1 = scaleM.multiplyVec3(v1);
-            v2 = scaleM.multiplyVec3(v2);
+            // v1 = scaleM.multiplyVec3(v1);
+            // v2 = scaleM.multiplyVec3(v2);
 
-            v1 = translation2.multiplyVec3(v1);
-            v2 = translation2.multiplyVec3(v2);
+            // v1 = translation2.multiplyVec3(v1);
+            // v2 = translation2.multiplyVec3(v2);
             
-            v1 = cabinet.multiplyVec3(v1);
-            v2 = cabinet.multiplyVec3(v2);
+            v1 = camera.projectionViewMatrix.multiplyVec3(v1);
+            v2 = camera.projectionViewMatrix.multiplyVec3(v2);
+            
+            v1 = camera.unProject.multiplyVec3(v1);
+            v2 = camera.unProject.multiplyVec3(v2);
 
             //v1 = viewport.multiplyVec3(v1);
             //v2 = viewport.multiplyVec3(v2);
@@ -326,11 +337,11 @@ module.exports = class CanvasApi {
 
             // let scale = 1;
 
-            v1.x = v1.x / context.Width;
-            v1.y = v1.y / context.Height;
+            // v1.x = v1.x / context.Width;
+            // v1.y = v1.y / context.Height;
 
-            v2.x = v2.x / context.Width;
-            v2.y = v2.y / context.Height;
+            // v2.x = v2.x / context.Width;
+            // v2.y = v2.y / context.Height;
 
             if (!window.Clip(v1, v2)) continue;
 
@@ -342,7 +353,7 @@ module.exports = class CanvasApi {
             v2.y = (-v2.y / 2 + 0.5) * context.Height;
 
 
-            this.DrawLine(context, v1, v2, { x: 1.0, y: 0, z: 0, w: 1.0 });
+            this.DrawLine(context, v1, v2, { x: 0, y: 0, z: 0, w: 1.0 });
         }
     }
 }

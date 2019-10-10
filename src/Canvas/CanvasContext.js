@@ -20,7 +20,7 @@ module.exports = class CanvasContext {
     m_BindedBuffers = Array(Object.keys(BufferType).length);
 
     /**@type {VertexArray} */
-    m_VertexArray = [];
+    m_VertexArray = [];    
 
     /**
      * 
@@ -28,6 +28,7 @@ module.exports = class CanvasContext {
      */
     constructor(context) {
         this.m_Context = context;
+        this.RendererBuffer = context.createImageData(this.Width, this.Height);
     }
 
     /**
