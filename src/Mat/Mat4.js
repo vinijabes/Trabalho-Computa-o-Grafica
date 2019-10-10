@@ -27,14 +27,10 @@ class Mat4 {
         return mat4;
     }
 
-    static Ortho(left, right, bottom, top, near, far) {
+    static Ortho() {
         let mat4 = new Mat4();
-        mat4.elements[0][0] = 2 / (right - left);
-        mat4.elements[0][3] = -(right + left) / (right - left);
-        mat4.elements[1][1] = 2 / (top - bottom);
-        mat4.elements[1][3] = -(top + bottom) / (top - bottom);
-        mat4.elements[2][2] = -2 / (far - near);
-        mat4.elements[2][3] = -(far + near) / (far - near);
+        mat4.elements[0][0] = 1;
+        mat4.elements[1][1] = 1;
         mat4.elements[3][3] = 1;
         return mat4;
     }
@@ -42,16 +38,16 @@ class Mat4 {
     static Cavaleira() {
         let mat4 = this.Identity();
         mat4.elements[2][2] = 0;
-        mat4.elements[0][2] = Math.cos(45 * Math.PI / 180);
-        mat4.elements[1][2] = Math.sin(45 * Math.PI / 180);
+        mat4.elements[2][0] = Math.cos(45 * Math.PI / 180);
+        mat4.elements[2][1] = Math.sin(45 * Math.PI / 180);
         return mat4;
     }
 
     static Cabinet() {
         let mat4 = this.Identity();
         mat4.elements[2][2] = 0;
-        mat4.elements[0][2] = Math.cos(63.4 * Math.PI / 180) / 2;
-        mat4.elements[1][2] = Math.sin(63.4 * Math.PI / 180) / 2;
+        mat4.elements[2][0] = Math.cos(63.4 * Math.PI / 180) / 2;
+        mat4.elements[2][1] = Math.sin(63.4 * Math.PI / 180) / 2;
         return mat4;
     }
 
@@ -59,8 +55,8 @@ class Mat4 {
         angle = angle * Math.PI / 180;
         let mat4 = this.Identity();
         mat4.elements[0][0] = Math.cos(angle);
-        mat4.elements[0][1] = -Math.sin(angle);
-        mat4.elements[1][0] = Math.sin(angle);
+        mat4.elements[1][0] = -Math.sin(angle);
+        mat4.elements[0][1] = Math.sin(angle);
         mat4.elements[1][1] = Math.cos(angle);
         return mat4;
     }
@@ -69,8 +65,8 @@ class Mat4 {
         angle = angle * Math.PI / 180;
         let mat4 = this.Identity();
         mat4.elements[0][0] = Math.cos(angle);
-        mat4.elements[0][2] = Math.sin(angle);
-        mat4.elements[2][0] = -Math.sin(angle);
+        mat4.elements[2][0] = Math.sin(angle);
+        mat4.elements[0][2] = -Math.sin(angle);
         mat4.elements[2][2] = Math.cos(angle);
         return mat4;
     }
@@ -79,8 +75,8 @@ class Mat4 {
         angle = angle * Math.PI / 180;
         let mat4 = this.Identity();
         mat4.elements[1][1] = Math.cos(angle);
-        mat4.elements[1][2] = -Math.sin(angle);
-        mat4.elements[2][1] = Math.sin(angle);
+        mat4.elements[2][1] = -Math.sin(angle);
+        mat4.elements[1][2] = Math.sin(angle);
         mat4.elements[2][2] = Math.cos(angle);
         return mat4;
     }
@@ -88,9 +84,9 @@ class Mat4 {
     static Translation(x, y, z) {
         let mat4 = this.Identity();
 
-        mat4.elements[0][3] = x;
-        mat4.elements[1][3] = y;
-        mat4.elements[2][3] = z;
+        mat4.elements[3][0] = x;
+        mat4.elements[3][1] = y;
+        mat4.elements[3][2] = z;
 
         return mat4;
     }
@@ -105,17 +101,14 @@ class Mat4 {
         return mat4;
     }
 
-    static Viewport(left, right, bottom, top, near, far, sx, sy) {
+    static Viewport(left, right, bottom, top, near, far) {
         let mat4 = new Mat4();
         let ws = right - left;
         let hs = top - bottom;
 
-        mat4.elements[0][0] = ws/2;
-        mat4.elements[1][1] = hs/2;
-        mat4.elements[2][2] = 1/2;
-        mat4.elements[2][3] = 1/2;
-        mat4.elements[1][3] = (top + bottom)/2;
-        mat4.elements[0][3] = (right + left)/2;
+        mat4.elements[0][0] = (far - near) / ws;
+        mat4.elements[1][1] = (far - near) / hs;
+        mat4.elements[2][2] = 1;
         mat4.elements[3][3] = 1;
 
         return mat4;
@@ -129,6 +122,23 @@ class Mat4 {
 
         let v3 = new Vec3(x / w, y / w, z / w);
         return v3;
+    }
+
+    multiplyMat4(mat4) {
+        let elements1 = this.elements;
+        let elements2 = mat4.elements;
+
+        let result = new Mat4();
+
+        for(let i = 0; i < 4; i++){
+            for(let j = 0; j < 4; j++){
+                for (let k = 0; k < 4; k++) {
+                    result.elements[i][j] += elements1[i][k] * elements2[k][j];
+                }
+            }
+        }
+
+        return result;
     }
 
     Get(row) {

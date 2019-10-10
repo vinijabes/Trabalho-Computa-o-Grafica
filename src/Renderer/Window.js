@@ -31,6 +31,8 @@ module.exports = class Window {
             code |= status.BOTTOM;
         else if (vec.y > this.position.y + this.size.y)
             code |= status.TOP;
+
+        //console.log(this.position.x + this.size.x, vec.x);
             
         return code;
     }
@@ -51,7 +53,7 @@ module.exports = class Window {
         while (true) {
 
             if ((code1 == 0) && (code2 == 0)) {
-                accept = true;
+                accept = true;                
                 return true;
             } else if (code1 & code2) {
                 return false;
@@ -70,7 +72,7 @@ module.exports = class Window {
                     x = this.position.x + this.size.x;
                 } else if (codeOut & status.LEFT) {
                     y = origin.y + (dest.y - origin.y) * (this.position.x - origin.x) / (dest.x - origin.x);
-                    y = this.position.x;
+                    x = this.position.x;
                 }
             }
 

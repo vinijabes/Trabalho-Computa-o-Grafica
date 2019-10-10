@@ -20,7 +20,10 @@ module.exports = class CanvasContext {
     m_BindedBuffers = Array(Object.keys(BufferType).length);
 
     /**@type {VertexArray} */
-    m_VertexArray = [];    
+    m_VertexArray = [];   
+    
+    /**@type {Array.<any>}*/
+    m_Locations = [];
 
     /**
      * 
@@ -230,6 +233,22 @@ module.exports = class CanvasContext {
             this.DrawPixel({ x: i, y: y }, color);
         }        
         return;
+    }
+
+    /**
+     * @param {number} location
+     * @param {any} value 
+     */
+    SetLocation(location, value){
+        this.m_Locations[location] = value;
+    }
+
+    /**
+     * @param {number} location
+     * @returns {any}
+     */
+    GetLocation(location){
+        return this.m_Locations[location];
     }
 
     get RawContext() { return this.m_Context; }

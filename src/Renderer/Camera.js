@@ -16,7 +16,7 @@ module.exports = class Camera {
     }
 
     UpdateProjectionViewMatrix() {
-        this.projectionViewMatrix = this.projection;
+        this.projectionViewMatrix = this.projection.multiplyMat4(this.view);
     }
 
     get unProject() { return new Mat4(Utils.invertMatrix(this.projection.elements)); }

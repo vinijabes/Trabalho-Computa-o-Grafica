@@ -248,6 +248,23 @@ module.exports = class CanvasApi {
 
     /**
      * @param {CanvasContext} context
+     * @param {number} location
+     * @param {any} value 
+     */
+    static SetLocation(context, location, value){
+        context.SetLocation(location, value);
+    }
+
+    /**
+     * @param {CanvasContext} context
+     * @param {number} location
+     */
+    static GetLocation(context, location){
+        return context.GetLocation(location);
+    }
+
+    /**
+     * @param {CanvasContext} context
      * @param {DrawMode} mode 
      * @param {number} n 
      * @param {number} offset
@@ -286,7 +303,7 @@ module.exports = class CanvasApi {
 
         let lines = [];
         for (let i = 2; i <= indexBufferSize; i += 2) lines.push(indexBuffer.slice(i - 2, i));
-        const ortho = Mat4.Ortho(-context.Width, context.Width, -context.Height, context.Height, -1, 1);
+        const ortho = Mat4.Ortho();
         const matrix = new Mat3([[1, 0, 0.2], [0, 1, 0.1], [0, 0, 1]]);
         const rotationX = Mat4.RotationX(angleX);
         const rotationY = Mat4.RotationY(angleY);
@@ -296,37 +313,33 @@ module.exports = class CanvasApi {
         const cabinet = Mat4.Cabinet();
         const scaleM = Mat4.Scale(1, 1, 1, 0.5);
         const identity = Mat4.Identity();
-        const viewport = Mat4.Viewport(-context.Width, context.Width, -context.Height, context.Height, -1, 1, 0, 0);
+        const viewport = Mat4.Viewport(-context.Width/2, context.Width/2, -context.Height/2, context.Height/2, -1, 1, 0, 0);
 
-        const camera = new Camera();
-        camera.SetProjection(cavaleira);
-
-        const window = new Window(new Vec2(-context.Width / 2, -context.Height / 2), new Vec2(context.Width, context.Height));
+        const camera = context.GetLocation(0);
+        
+        const window = new Window(new Vec2(-1, -1), new Vec2(2, 2));
 
         for (let line of lines) {
             v1 = new Vec3((vertexBuffer[line[0] * n + offset]), (vertexBuffer[line[0] * n + 1 + offset]), vertexBuffer[line[0] * n + 2]);
             v2 = new Vec3((vertexBuffer[line[1] * n + offset]), (vertexBuffer[line[1] * n + 1 + offset]), vertexBuffer[line[1] * n + 2]);
 
-            // v1 = translation1.multiplyVec3(v1);
-            // v2 = translation1.multiplyVec3(v2);
+            v1 = v1.multiplyMat4(translation1);
+            v2 = v2.multiplyMat4(translation1);
 
-            // v1 = rotationX.multiplyVec3(v1);
-            // v2 = rotationX.multiplyVec3(v2);
+            v1 = v1.multiplyMat4(rotationX);
+            v2 = v2.multiplyMat4(rotationX);
 
-            // v1 = rotationY.multiplyVec3(v1);
-            // v2 = rotationY.multiplyVec3(v2);
+            v1 = v1.multiplyMat4(rotationY);
+            v2 = v2.multiplyMat4(rotationY);
 
-            // v1 = scaleM.multiplyVec3(v1);
-            // v2 = scaleM.multiplyVec3(v2);
+            v1 = v1.multiplyMat4(scaleM);
+            v2 = v2.multiplyMat4(scaleM);
 
-            // v1 = translation2.multiplyVec3(v1);
-            // v2 = translation2.multiplyVec3(v2);
+            v1 = v1.multiplyMat4(translation2);
+            v2 = v2.multiplyMat4(translation2);
             
-            v1 = camera.projectionViewMatrix.multiplyVec3(v1);
-            v2 = camera.projectionViewMatrix.multiplyVec3(v2);
-            
-            v1 = camera.unProject.multiplyVec3(v1);
-            v2 = camera.unProject.multiplyVec3(v2);
+            v1 = v1.multiplyMat4(camera.projectionViewMatrix);
+            v2 = v2.multiplyMat4(camera.projectionViewMatrix);
 
             //v1 = viewport.multiplyVec3(v1);
             //v2 = viewport.multiplyVec3(v2);
@@ -342,15 +355,14 @@ module.exports = class CanvasApi {
 
             // v2.x = v2.x / context.Width;
             // v2.y = v2.y / context.Height;
-
             if (!window.Clip(v1, v2)) continue;
-
 
             v1.x = (v1.x / 2 + 0.5) * context.Width;
             v1.y = (-v1.y / 2 + 0.5) * context.Height;
 
             v2.x = (v2.x / 2 + 0.5) * context.Width;
             v2.y = (-v2.y / 2 + 0.5) * context.Height;
+
 
 
             this.DrawLine(context, v1, v2, { x: 0, y: 0, z: 0, w: 1.0 });

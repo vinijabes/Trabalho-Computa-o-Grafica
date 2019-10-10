@@ -1,6 +1,7 @@
 const Ava = require('./src/Ava.js');
 const Canvas = Ava.Canvas;
 const { Mat4, Vec3 } = require('./src/Mat');
+const Camera = require('./src/Renderer/Camera');
 const VertexArray = require('./src/Renderer/VertexArray');
 
 const c = document.getElementById('view');
@@ -41,8 +42,8 @@ vertexArray.AddVextexAttrib(0, VertexArray.AvaType.Vec3);
 vertexArray.AddVextexAttrib(1, VertexArray.AvaType.Vec4);
 
 Canvas.CanvasApi.AvaBindVertexArray(CanvasContext, vertexArray);
-let ArrayBuffer = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
-let IndexBuffer = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
+let ArrayBufferCasa = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
+let IndexBufferCasa = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
 
 const verticesCasa =
   [
@@ -56,8 +57,6 @@ const verticesCasa =
     100, 200, 100,//7
     150, 100, 320,//8
     150, 200, 320, //9
-    0, 200, 0,
-    0, -200, 0
   ];
 const indicesVertices =
   [
@@ -77,17 +76,45 @@ const indicesVertices =
     5, 9,//14
     3, 8,//15
     2, 8,//16
-    8, 9,
-    10, 11
+    8, 9
   ]
+
+let ArrayBufferLinhas = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
+let IndexBufferLinhas = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
+
+const verticesLinhas =
+  [
+    0, 200, 0,
+    0, -200, 0
+  ];
+const indicesLinhas =
+  [
+    0, 1
+  ];
+
+let camera = new Camera();
+let projection = Mat4.Ortho();
+
+camera.SetProjection(projection);
+camera.SetView(Mat4.Viewport(-CanvasContext.Width/2, CanvasContext.Width/2, -CanvasContext.Height/2, CanvasContext.Height/2, -1, 1));
+
+Canvas.CanvasApi.SetLocation(CanvasContext, 0, camera);
 
 var render = () => {
 
-  Canvas.CanvasApi.AvaBindBuffer(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ARRAY_BUFFER, ArrayBuffer);
-  Canvas.CanvasApi.AvaSetBufferData(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ARRAY_BUFFER, ArrayBuffer, verticesCasa);
-  //[0, 4, 4, 1, 1, 2, 2, 4, 4, 3, 3, 0]
-  Canvas.CanvasApi.AvaBindBuffer(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ELEMENT_ARRAY_BUFFER, IndexBuffer);
-  Canvas.CanvasApi.AvaSetBufferData(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ELEMENT_ARRAY_BUFFER, IndexBuffer, indicesVertices);
+  Canvas.CanvasApi.AvaBindBuffer(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ARRAY_BUFFER, ArrayBufferCasa);
+  Canvas.CanvasApi.AvaSetBufferData(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ARRAY_BUFFER, ArrayBufferCasa, verticesCasa);
+  
+  Canvas.CanvasApi.AvaBindBuffer(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ELEMENT_ARRAY_BUFFER, IndexBufferCasa);
+  Canvas.CanvasApi.AvaSetBufferData(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ELEMENT_ARRAY_BUFFER, IndexBufferCasa, indicesVertices);
+
+  Canvas.CanvasApi.AvaDrawElements(CanvasContext, Canvas.CanvasContext.DrawMode.AVA_LINES, 3);
+
+  Canvas.CanvasApi.AvaBindBuffer(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ARRAY_BUFFER, ArrayBufferLinhas);
+  Canvas.CanvasApi.AvaSetBufferData(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ARRAY_BUFFER, ArrayBufferLinhas, verticesLinhas);
+  
+  Canvas.CanvasApi.AvaBindBuffer(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ELEMENT_ARRAY_BUFFER, IndexBufferLinhas);
+  Canvas.CanvasApi.AvaSetBufferData(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ELEMENT_ARRAY_BUFFER, IndexBufferLinhas, indicesLinhas);
 
   Canvas.CanvasApi.AvaDrawElements(CanvasContext, Canvas.CanvasContext.DrawMode.AVA_LINES, 3);
   Canvas.CanvasApi.SwapBuffer(CanvasContext);
@@ -134,7 +161,7 @@ c.onmouseup = (e) => {
 
   indicesVertices.push(verticesCasa.push(initial.x, initial.y, 0) / 3 - 1);
   indicesVertices.push(verticesCasa.push(end.x, end.y, 0) / 3 - 1);
-    
+
   //Canvas.CanvasApi.DrawLine(CanvasContext, initial, end, { x: 1.0, y: 0, z: 0, w: 1.0 }, 1);
   //Canvas.CanvasApi.DrawCircle(CanvasContext, initial, Math.sqrt((initial.x - end.x) ** 2 + (initial.y - end.y) ** 2), { x: Math.random(), y: Math.random(), z: Math.random(), w: 1.0 })
 }
