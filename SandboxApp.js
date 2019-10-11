@@ -7,36 +7,28 @@ const GameObject = require('./src/Engine/GameObject');
 
 const c = document.getElementById('view');
 const offscreen = new OffscreenCanvas(document.documentElement.clientWidth, document.documentElement.clientHeight);
-c.width = document.documentElement.clientWidth;
+c.width = document.documentElement.clientWidth*0.75;
 c.height = document.documentElement.clientHeight;
 
 window.addEventListener("resize", () => {
-  c.width = document.documentElement.clientWidth;
+  c.width = document.documentElement.clientWidth*0.75;
   c.height = document.documentElement.clientHeight;
   offscreen.width = c.width;
   offscreen.height = c.height;
+  camera.SetView(Mat4.Viewport(-CanvasContext.Width / 2, CanvasContext.Width / 2, -CanvasContext.Height / 2, CanvasContext.Height / 2, -1, 1));
+  Canvas.CanvasApi.SetLocation(CanvasContext, 0, camera);
+
+  cartesian.m_Vertex =
+    [
+      -CanvasContext.Width / 2, 0, 0,
+      CanvasContext.Width / 2, 0, 0,
+      0, -CanvasContext.Height / 2, 0,
+      0, CanvasContext.Width / 2, 0,
+    ];
 })
 
 const context = c.getContext('bitmaprenderer');
 const CanvasContext = new Canvas.CanvasContext(offscreen.getContext('2d'));
-
-// Canvas.CanvasApi.DrawLine(CanvasContext, { x: 0, y: 0 }, { x: 50, y: 0 }, { x: 1.0, y: 0, z: 0, w: 1.0 }, 1);
-// Canvas.CanvasApi.DrawLine(CanvasContext, { x: 0, y: 600 }, { x: 0, y: 0 }, { x: 1.0, y: 0, z: 0, w: 1.0 }, 1);
-// Canvas.CanvasApi.DrawLine(CanvasContext, { x: 50, y: 600 }, { x: 0, y: 600 }, { x: 1.0, y: 0, z: 0, w: 1.0 }, 1);
-// Canvas.CanvasApi.DrawLine(CanvasContext, { x: 50, y: 0 }, { x: 50, y: 600 }, { x: 0.0, y: 0, z: 0, w: 1.0 }, 1);
-//Canvas.CanvasApi.DrawLine(CanvasContext, { x: 50, y: 50 }, { x: 1280, y: 720 }, { x: 1.0, y: 0, z: 0, w: 1.0 }, 1);
-
-// const vertices =
-//     [-0.5, -0.5, 0.0,
-//       0.5, -0.5, 0.0,
-//       0.5,  0.5, 0.0,
-//      -0.5,  0.5, 0.0]
-const vertices =
-  [10, 100, 0.0,
-    100, 100, 0.0,
-    100, 10, 0.0,
-    10, 10, 0.0,
-    55, 55, 0.0];
 
 const vertexArray = new VertexArray();
 vertexArray.AddVextexAttrib(0, VertexArray.AvaType.Vec3);
@@ -80,52 +72,39 @@ const indicesVertices =
     8, 9
   ]
 
-let ArrayBufferLinhas = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
-let IndexBufferLinhas = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
-
-const verticesLinhas =
-  [
-    0, 200, 0,
-    0, -200, 0
-  ];
-const indicesLinhas =
-  [
-    0, 1
-  ];
-
 let camera = new Camera();
 let projection = Mat4.Ortho();
 
 camera.SetProjection(projection);
-camera.SetView(Mat4.Viewport(-CanvasContext.Width/2, CanvasContext.Width/2, -CanvasContext.Height/2, CanvasContext.Height/2, -1, 1));
-
+camera.SetView(Mat4.Viewport(-CanvasContext.Width / 2, CanvasContext.Width / 2, -CanvasContext.Height / 2, CanvasContext.Height / 2, -1, 1));
 Canvas.CanvasApi.SetLocation(CanvasContext, 0, camera);
+
+let gameObjects = [];
 
 let go = new GameObject();
 go.m_VertexBuffer = ArrayBufferCasa;
 go.m_IndexBuffer = IndexBufferCasa;
 go.m_Vertex = verticesCasa;
 go.m_Index = indicesVertices;
+gameObjects.push(go);
+
+let cartesian = new GameObject(false);
+cartesian.m_VertexBuffer = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
+cartesian.m_IndexBuffer = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
+cartesian.m_Vertex =
+  [
+    -CanvasContext.Width / 2, 0, 0,
+    CanvasContext.Width / 2, 0, 0,
+    0, -CanvasContext.Height / 2, 0,
+    0, CanvasContext.Width / 2, 0,
+  ];
+cartesian.m_Index = [0, 1, 2, 3];
+
+gameObjects.push(cartesian);
 
 var render = () => {
+  for (let g of gameObjects) g.Render(CanvasContext);
 
-  // Canvas.CanvasApi.AvaBindBuffer(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ARRAY_BUFFER, ArrayBufferCasa);
-  // Canvas.CanvasApi.AvaSetBufferData(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ARRAY_BUFFER, ArrayBufferCasa, verticesCasa);
-  
-  // Canvas.CanvasApi.AvaBindBuffer(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ELEMENT_ARRAY_BUFFER, IndexBufferCasa);
-  // Canvas.CanvasApi.AvaSetBufferData(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ELEMENT_ARRAY_BUFFER, IndexBufferCasa, indicesVertices);
-
-  // Canvas.CanvasApi.AvaDrawElements(CanvasContext, Canvas.CanvasContext.DrawMode.AVA_LINES, 3);
-
-  go.Render();
-
-  Canvas.CanvasApi.AvaBindBuffer(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ARRAY_BUFFER, ArrayBufferLinhas);
-  Canvas.CanvasApi.AvaSetBufferData(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ARRAY_BUFFER, ArrayBufferLinhas, verticesLinhas);
-  
-  Canvas.CanvasApi.AvaBindBuffer(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ELEMENT_ARRAY_BUFFER, IndexBufferLinhas);
-  Canvas.CanvasApi.AvaSetBufferData(CanvasContext, Canvas.CanvasContext.BufferType.AVA_ELEMENT_ARRAY_BUFFER, IndexBufferLinhas, indicesLinhas);
-
-  Canvas.CanvasApi.AvaDrawElements(CanvasContext, Canvas.CanvasContext.DrawMode.AVA_LINES, 3);
   Canvas.CanvasApi.SwapBuffer(CanvasContext);
   let bitmap = offscreen.transferToImageBitmap();
   context.transferFromImageBitmap(bitmap);
@@ -136,15 +115,20 @@ let delta = 0;
 let last = 0;
 var frame = function (now) {
   delta += now - last;
+
+  for (let g of gameObjects) {
+    g.Update((now - last) / 1000);
+  }
+  camera.Update((now - last) / 1000);
+
   last = now;
   count++;
 
   if (delta > 1000) {
-    //console.log(count);
+    console.log(count);
     count = 0;
     delta = 0;
-  }
-
+  }  
   //update();
   CanvasContext.RawContext.clearRect(0, 0, CanvasContext.Width, CanvasContext.Height);
   Canvas.CanvasApi.DrawCircle(CanvasContext, { x: CanvasContext.Width / 2, y: CanvasContext.Height / 2 }, 2, { x: 0, y: 0, z: 0, w: 1.0 })
@@ -158,23 +142,26 @@ let initial = {};
 let end = {};
 
 c.onmousedown = (e) => {
-  initial.x = e.offsetX - CanvasContext.Width / 2;
-  initial.y = -(e.offsetY - CanvasContext.Height / 2);
-  console.log("X:", e.offsetX - CanvasContext.Width / 2, "Y:", -(e.offsetY - CanvasContext.Height / 2));
+  initial.x = (e.offsetX - CanvasContext.Width / 2)
+  initial.y = (-(e.offsetY - CanvasContext.Height / 2))
+
 }
 
 c.onmouseup = (e) => {
   end.x = e.offsetX - CanvasContext.Width / 2;
   end.y = -(e.offsetY - CanvasContext.Height / 2);
-  console.log("X:", e.offsetX - CanvasContext.Width / 2, "Y:", -(e.offsetY - CanvasContext.Height / 2));
 
-  indicesVertices.push(verticesCasa.push(initial.x, initial.y, 0) / 3 - 1);
-  indicesVertices.push(verticesCasa.push(end.x, end.y, 0) / 3 - 1);
+  let g = new GameObject();
+  g.m_VertexBuffer = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
+  g.m_IndexBuffer = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
+  g.m_Vertex =
+    [
+      initial.x, initial.y, 0,
+      end.x, end.y, 0
+    ];
+  g.m_Index = [0, 1];
 
+  gameObjects.push(g);
   //Canvas.CanvasApi.DrawLine(CanvasContext, initial, end, { x: 1.0, y: 0, z: 0, w: 1.0 }, 1);
   //Canvas.CanvasApi.DrawCircle(CanvasContext, initial, Math.sqrt((initial.x - end.x) ** 2 + (initial.y - end.y) ** 2), { x: Math.random(), y: Math.random(), z: Math.random(), w: 1.0 })
-}
-
-c.onmousemove = (e) => {
-  //console.log("X:", e.offsetX - CanvasContext.Width / 2, "Y:", -(e.offsetY - CanvasContext.Height / 2));
 }

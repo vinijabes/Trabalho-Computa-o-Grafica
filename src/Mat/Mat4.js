@@ -51,34 +51,35 @@ class Mat4 {
         return mat4;
     }
 
-    static RotationZ(angle) {
+    static RotationZ(angle, x = 0, y = 0, z = 0) {
         angle = angle * Math.PI / 180;
         let mat4 = this.Identity();
         mat4.elements[0][0] = Math.cos(angle);
         mat4.elements[1][0] = -Math.sin(angle);
         mat4.elements[0][1] = Math.sin(angle);
         mat4.elements[1][1] = Math.cos(angle);
-        return mat4;
+        return Mat4.Translation(-x, -y, -z).multiplyMat4(mat4).multiplyMat4(Mat4.Translation(x, y, z));
     }
 
-    static RotationY(angle) {
+    static RotationY(angle, x = 0, y = 0, z = 0) {
         angle = angle * Math.PI / 180;
         let mat4 = this.Identity();
         mat4.elements[0][0] = Math.cos(angle);
         mat4.elements[2][0] = Math.sin(angle);
         mat4.elements[0][2] = -Math.sin(angle);
         mat4.elements[2][2] = Math.cos(angle);
-        return mat4;
+        return Mat4.Translation(-x, -y, -z).multiplyMat4(mat4).multiplyMat4(Mat4.Translation(x, y, z));
     }
 
-    static RotationX(angle) {
+    static RotationX(angle, x = 0, y = 0, z = 0) {
         angle = angle * Math.PI / 180;
         let mat4 = this.Identity();
         mat4.elements[1][1] = Math.cos(angle);
         mat4.elements[2][1] = -Math.sin(angle);
         mat4.elements[1][2] = Math.sin(angle);
         mat4.elements[2][2] = Math.cos(angle);
-        return mat4;
+        
+        return Mat4.Translation(-x, -y, -z).multiplyMat4(mat4).multiplyMat4(Mat4.Translation(x, y, z));
     }
 
     static Translation(x, y, z) {

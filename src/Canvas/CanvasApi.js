@@ -305,8 +305,8 @@ module.exports = class CanvasApi {
         for (let i = 2; i <= indexBufferSize; i += 2) lines.push(indexBuffer.slice(i - 2, i));
         const ortho = Mat4.Ortho();
         const matrix = new Mat3([[1, 0, 0.2], [0, 1, 0.1], [0, 0, 1]]);
-        const rotationX = Mat4.RotationX(angleX);
-        const rotationY = Mat4.RotationY(angleY);
+        // const rotationX = Mat4.RotationX(angleX);
+        // const rotationY = Mat4.RotationY(angleY);
         const translation1 = Mat4.Translation(-150, -150, -(100 + 320) / 2);
         const translation2 = Mat4.Translation(150, 150, (100 + 320) / 2);
         const cavaleira = Mat4.Cavaleira();
@@ -316,6 +316,7 @@ module.exports = class CanvasApi {
         const viewport = Mat4.Viewport(-context.Width/2, context.Width/2, -context.Height/2, context.Height/2, -1, 1, 0, 0);
 
         const camera = context.GetLocation(0);
+        const transformation = context.GetLocation(1);
         
         const window = new Window(new Vec2(-1, -1), new Vec2(2, 2));
 
@@ -323,23 +324,28 @@ module.exports = class CanvasApi {
             v1 = new Vec3((vertexBuffer[line[0] * n + offset]), (vertexBuffer[line[0] * n + 1 + offset]), vertexBuffer[line[0] * n + 2]);
             v2 = new Vec3((vertexBuffer[line[1] * n + offset]), (vertexBuffer[line[1] * n + 1 + offset]), vertexBuffer[line[1] * n + 2]);
 
-            v1 = v1.multiplyMat4(translation1);
-            v2 = v2.multiplyMat4(translation1);
+            // v1 = v1.multiplyMat4(translation1);
+            // v2 = v2.multiplyMat4(translation1);
 
-            v1 = v1.multiplyMat4(rotationX);
-            v2 = v2.multiplyMat4(rotationX);
+            // v1 = v1.multiplyMat4(rotationX);
+            // v2 = v2.multiplyMat4(rotationX);
 
-            v1 = v1.multiplyMat4(rotationY);
-            v2 = v2.multiplyMat4(rotationY);
+            // v1 = v1.multiplyMat4(rotationY);
+            // v2 = v2.multiplyMat4(rotationY);
 
-            v1 = v1.multiplyMat4(scaleM);
-            v2 = v2.multiplyMat4(scaleM);
+            // v1 = v1.multiplyMat4(scaleM);
+            // v2 = v2.multiplyMat4(scaleM);
 
-            v1 = v1.multiplyMat4(translation2);
-            v2 = v2.multiplyMat4(translation2);
+            // v1 = v1.multiplyMat4(translation2);
+            // v2 = v2.multiplyMat4(translation2);
             
-            v1 = v1.multiplyMat4(camera.projectionViewMatrix);
-            v2 = v2.multiplyMat4(camera.projectionViewMatrix);
+            if(transformation){
+                v1 = v1.multiplyMat4(transformation);
+                v2 = v2.multiplyMat4(transformation);
+            }
+
+            v1 = v1.multiplyMat4(camera.m_Transformation.multiplyMat4(camera.projectionViewMatrix));
+            v2 = v2.multiplyMat4(camera.m_Transformation.multiplyMat4(camera.projectionViewMatrix));
 
             //v1 = viewport.multiplyVec3(v1);
             //v2 = viewport.multiplyVec3(v2);
