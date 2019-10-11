@@ -4,6 +4,8 @@ const { Mat4, Vec3 } = require('./src/Mat');
 const Camera = require('./src/Renderer/Camera');
 const VertexArray = require('./src/Renderer/VertexArray');
 const GameObject = require('./src/Engine/GameObject');
+const UI = require('./src/UI');
+const TransformationUI = require('./src/Scripts/TransformationUI');
 
 const gameObjectsSelect = document.getElementById("gameobjects");
 const c = document.getElementById('view');
@@ -80,11 +82,46 @@ cartesian.m_Vertex =
     -CanvasContext.Width / 2, 0, 0,
     CanvasContext.Width / 2, 0, 0,
     0, -CanvasContext.Height / 2, 0,
-    0, CanvasContext.Width / 2, 0,
+    0, CanvasContext.Height / 2, 0,
   ];
 cartesian.m_Index = [0, 1, 2, 3];
 
 gameObjects.push(cartesian);
+
+
+let menu = new UI.Menu(new UI.HTMLObject(document.getElementById('menu')));
+let select = new UI.Select(null);
+select.AddOption(go.m_Name, go);
+select.AddOption(cartesian.m_Name, cartesian);
+
+select.onChange = (value) => {
+  console.log(value);
+}
+
+let TextX = new UI.Text(null, "X: ");
+let TextY = new UI.Text(null, "Y: ");
+let TextZ = new UI.Text(null, "Z: ");
+
+menu.AddChild(select);
+menu.AddChild(TextX);
+menu.AddChild(TextY);
+menu.AddChild(TextZ);
+
+menu.AddChild(new TransformationUI(null));
+
+menu.Render();
+
+var update = (delta) => {
+  for (let g of gameObjects) {
+    g.Update(delta);
+  }
+  camera.Update(delta);
+  menu.Update(delta);
+
+  TextX.SetText(`X: ${select.Value().center().x.toFixed(2)}`);
+  TextY.SetText(`Y: ${select.Value().center().y.toFixed(2)}`);
+  TextZ.SetText(`Z: ${select.Value().center().z.toFixed(2)}`);
+}
 
 var render = () => {
   for (let g of gameObjects) g.Render(CanvasContext);
@@ -100,10 +137,7 @@ let last = 0;
 var frame = function (now) {
   delta += now - last;
 
-  for (let g of gameObjects) {
-    g.Update((now - last) / 1000);
-  }
-  camera.Update((now - last) / 1000);
+  update((now - last) / 1000);
 
   last = now;
   count++;
@@ -147,6 +181,7 @@ c.onmouseup = (e) => {
   g.m_Index = [0, 1];
 
   gameObjects.push(g);
+  select.AddOption('Linha', g);
   //Canvas.CanvasApi.DrawLine(CanvasContext, initial, end, { x: 1.0, y: 0, z: 0, w: 1.0 }, 1);
   //Canvas.CanvasApi.DrawCircle(CanvasContext, initial, Math.sqrt((initial.x - end.x) ** 2 + (initial.y - end.y) ** 2), { x: Math.random(), y: Math.random(), z: Math.random(), w: 1.0 })
 }
@@ -164,12 +199,6 @@ window.addEventListener("resize", () => {
       -CanvasContext.Width / 2, 0, 0,
       CanvasContext.Width / 2, 0, 0,
       0, -CanvasContext.Height / 2, 0,
-      0, CanvasContext.Width / 2, 0,
+      0, CanvasContext.Height / 2, 0,
     ];
 })
-
-for(let g of gameObjects){
-  let option = document.createElement("option");
-  option.text = g.m_Name;
-  gameObjectsSelect.add(option);
-}
