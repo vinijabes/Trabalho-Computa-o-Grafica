@@ -311,12 +311,11 @@ module.exports = class CanvasApi {
         const cabinet = Mat4.Cabinet();
         const scaleM = Mat4.Scale(1, 1, 1, 0.5);
         const identity = Mat4.Identity();
-        const viewport = Mat4.Viewport(-context.Width/2, context.Width/2, -context.Height/2, context.Height/2, -1, 1, 0, 0);
 
         const camera = context.GetLocation(0);
         const transformation = context.GetLocation(1);
         
-        const window = new Window(new Vec2(-1, -1), new Vec2(2, 2));
+        const window = context.GetLocation(2);
 
         for (let line of lines) {
             v1 = new Vec3((vertexBuffer[line[0] * n + offset]), (vertexBuffer[line[0] * n + 1 + offset]), vertexBuffer[line[0] * n + 2]);

@@ -1,9 +1,10 @@
 const Ava = require('./src/Ava.js');
 const Canvas = Ava.Canvas;
-const { Mat4, Vec3 } = require('./src/Mat');
+const { Mat4, Vec3, Vec2 } = require('./src/Mat');
 const Camera = require('./src/Renderer/Camera');
 const VertexArray = require('./src/Renderer/VertexArray');
 const GameObject = require('./src/Engine/GameObject');
+const Window = require('./src/Renderer/Window');
 const UI = require('./src/UI');
 const TransformationUI = require('./src/Scripts/TransformationUI');
 
@@ -64,6 +65,7 @@ let projection = Mat4.Ortho();
 camera.SetProjection(projection);
 camera.SetView(Mat4.Viewport(-CanvasContext.Width / 2, CanvasContext.Width / 2, -CanvasContext.Height / 2, CanvasContext.Height / 2, -1, 1));
 Canvas.CanvasApi.SetLocation(CanvasContext, 0, camera);
+Canvas.CanvasApi.SetLocation(CanvasContext, 2, new Window(new Vec2(-1, -1), new Vec2(2, 2)));
 
 let gameObjects = [];
 
@@ -107,7 +109,17 @@ menu.AddChild(TextX);
 menu.AddChild(TextY);
 menu.AddChild(TextZ);
 
-menu.AddChild(new TransformationUI(null));
+let settingWindow = false;
+let transformationUI = new TransformationUI(null);
+let windowButton = new UI.Button(null, 'Set new Window');
+windowButton.m_DomNode.style.marginTop = '8px';
+windowButton.onClick = () => {
+  settingWindow = true;
+}
+
+transformationUI.AddChild(windowButton);
+
+menu.AddChild(transformationUI);
 
 menu.Render();
 
@@ -163,27 +175,50 @@ let end = {};
 c.onmousedown = (e) => {
   initial.x = (e.offsetX - CanvasContext.Width / 2)
   initial.y = (-(e.offsetY - CanvasContext.Height / 2))
-
 }
 
 c.onmouseup = (e) => {
   end.x = e.offsetX - CanvasContext.Width / 2;
   end.y = -(e.offsetY - CanvasContext.Height / 2);
 
-  let g = new GameObject();
-  g.m_VertexBuffer = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
-  g.m_IndexBuffer = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
-  g.m_Vertex =
-    [
-      initial.x, initial.y, 0,
-      end.x, end.y, 0
-    ];
-  g.m_Index = [0, 1];
+  if (!settingWindow) {
+    let g = new GameObject();
+    g.m_VertexBuffer = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
+    g.m_IndexBuffer = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
+    g.m_Vertex =
+      [
+        initial.x, initial.y, 0,
+        end.x, end.y, 0
+      ];
+    g.m_Index = [0, 1];
 
-  gameObjects.push(g);
-  select.AddOption('Linha', g);
+    gameObjects.push(g);
+    select.AddOption('Linha', g);
+  } else {
+    let v3I = new Vec3(initial.x, initial.y, 0);
+    let v3F = new Vec3(end.x, end.y, 0);
+    v3I = v3I.multiplyMat4(camera.view);
+    v3F = v3F.multiplyMat4(camera.view);
+
+    Canvas.CanvasApi.SetLocation(CanvasContext, 2, new Window(new Vec2(Math.min(v3I.x, v3F.x), Math.min(v3I.y, v3F.y)), new Vec2(Math.abs(v3F.x - v3I.x), Math.abs(v3F.y - v3I.y))));
+    settingWindow = false;
+  }
+  initial = {};
   //Canvas.CanvasApi.DrawLine(CanvasContext, initial, end, { x: 1.0, y: 0, z: 0, w: 1.0 }, 1);
   //Canvas.CanvasApi.DrawCircle(CanvasContext, initial, Math.sqrt((initial.x - end.x) ** 2 + (initial.y - end.y) ** 2), { x: Math.random(), y: Math.random(), z: Math.random(), w: 1.0 })
+}
+
+c.onmousemove = (e) => {
+  if (settingWindow && initial != {}) {
+    let v3I = new Vec3(initial.x, initial.y, 0);
+    let v3F = new Vec3(e.offsetX - CanvasContext.Width / 2, -(e.offsetY - CanvasContext.Height / 2), 0);
+    v3I = v3I.multiplyMat4(camera.view);
+    v3F = v3F.multiplyMat4(camera.view);
+
+    Canvas.CanvasApi.SetLocation(CanvasContext, 2, new Window(new Vec2(Math.min(v3I.x, v3F.x), Math.min(v3I.y, v3F.y)), new Vec2(Math.abs(v3F.x - v3I.x), Math.abs(v3F.y - v3I.y))));
+  }else if(settingWindow){
+    Canvas.CanvasApi.SetLocation(CanvasContext, 2, new Window(new Vec2(-1, -1), new Vec2(2, 2)));
+  }
 }
 
 window.addEventListener("resize", () => {

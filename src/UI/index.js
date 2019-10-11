@@ -3,5 +3,6 @@ module.exports = {
     Select: require('./UISelect'),
     HTMLObject: require('./UIHTMLObject'),
     Text: require('./UIText'),
-    Input: require('./UIInput')
+    Input: require('./UIInput'),
+    Button: require('./UIButton')
 }

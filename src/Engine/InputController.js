@@ -7,7 +7,6 @@ module.exports = class InputController{
     constructor(){
         if(this._instance) throw new Error("Can't create multiple instances of InputController");
         window.onkeydown = (e) => {
-            console.log(document.activeElement.tagName);
             this.keys[e.keyCode] = true;
         }
 

@@ -92,12 +92,25 @@ class Mat4 {
         return mat4;
     }
 
-    static Scale(x, y = 1, z = 1, global = 1) {
+    static Scale(x, y = 1, z = 1, global = 1, xPos = 0, yPos = 0, zPos = 0) {
         let mat4 = this.Identity();
         mat4.elements[0][0] = x;
         mat4.elements[1][1] = y;
         mat4.elements[2][2] = z;
         mat4.elements[3][3] = global;
+
+        return Mat4.Translation(-xPos, -yPos, -zPos).multiplyMat4(mat4).multiplyMat4(Mat4.Translation(xPos, yPos, zPos));
+    }
+
+    static Shear(xy, xz, yz, yx, zx, zy) {
+        let mat4 = this.Identity();
+        mat4.elements[0][1] = yx;
+        mat4.elements[0][2] = zx;
+        mat4.elements[1][2] = yz;
+
+        mat4.elements[1][0] = xy;
+        mat4.elements[2][0] = xz;
+        mat4.elements[2][1] = zy;
 
         return mat4;
     }

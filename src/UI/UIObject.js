@@ -28,7 +28,12 @@ module.exports = class UIObject {
      */
     AddChild(child) {
         this.m_Children.push(child);
-        console.log(child);
+        child.SetParent(this);
+        this.Render();
+    }
+
+    AddChildInFront(child) {
+        this.m_Children.unshift(child);
         child.SetParent(this);
         this.Render();
     }
@@ -36,6 +41,14 @@ module.exports = class UIObject {
     RemoveChild(child){
         this.m_Children.splice(this.m_Children.indexOf(child), 1);
         this.Render();
+    }
+
+    GetChildOfType(type){
+        for(let c of this.m_Children){
+            if(c instanceof type) return c;
+        }
+
+        return null;
     }
 
     /**
