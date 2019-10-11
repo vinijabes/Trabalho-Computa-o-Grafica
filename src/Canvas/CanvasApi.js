@@ -62,14 +62,12 @@ module.exports = class CanvasApi {
      * @param {CanvasContext} context 
      */
     static DrawPixel(context, position, color) {
-        //const id = context.RawContext.createImageData(1, 1);
         const d = context.RendererBuffer.data;
 
         d[(Math.round(position.y) * Math.floor(context.Width) + Math.round(position.x))*4] = color.x * 255;
         d[(Math.round(position.y) * Math.floor(context.Width) + Math.round(position.x))*4 + 1] = color.y * 255;
         d[(Math.round(position.y) * Math.floor(context.Width) + Math.round(position.x))*4 + 2] = color.z * 255;
         d[(Math.round(position.y) * Math.floor(context.Width) + Math.round(position.x))*4 + 3] = color.w * 255;
-        //context.RawContext.putImageData(id, position.x, position.y);
     }
 
     /**

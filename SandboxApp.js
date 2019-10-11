@@ -5,27 +5,11 @@ const Camera = require('./src/Renderer/Camera');
 const VertexArray = require('./src/Renderer/VertexArray');
 const GameObject = require('./src/Engine/GameObject');
 
+const gameObjectsSelect = document.getElementById("gameobjects");
 const c = document.getElementById('view');
-const offscreen = new OffscreenCanvas(document.documentElement.clientWidth, document.documentElement.clientHeight);
-c.width = document.documentElement.clientWidth*0.75;
+const offscreen = new OffscreenCanvas(document.documentElement.clientWidth * 0.75, document.documentElement.clientHeight);
+c.width = document.documentElement.clientWidth * 0.75;
 c.height = document.documentElement.clientHeight;
-
-window.addEventListener("resize", () => {
-  c.width = document.documentElement.clientWidth*0.75;
-  c.height = document.documentElement.clientHeight;
-  offscreen.width = c.width;
-  offscreen.height = c.height;
-  camera.SetView(Mat4.Viewport(-CanvasContext.Width / 2, CanvasContext.Width / 2, -CanvasContext.Height / 2, CanvasContext.Height / 2, -1, 1));
-  Canvas.CanvasApi.SetLocation(CanvasContext, 0, camera);
-
-  cartesian.m_Vertex =
-    [
-      -CanvasContext.Width / 2, 0, 0,
-      CanvasContext.Width / 2, 0, 0,
-      0, -CanvasContext.Height / 2, 0,
-      0, CanvasContext.Width / 2, 0,
-    ];
-})
 
 const context = c.getContext('bitmaprenderer');
 const CanvasContext = new Canvas.CanvasContext(offscreen.getContext('2d'));
@@ -81,14 +65,14 @@ Canvas.CanvasApi.SetLocation(CanvasContext, 0, camera);
 
 let gameObjects = [];
 
-let go = new GameObject();
+let go = new GameObject("Casa");
 go.m_VertexBuffer = ArrayBufferCasa;
 go.m_IndexBuffer = IndexBufferCasa;
 go.m_Vertex = verticesCasa;
 go.m_Index = indicesVertices;
 gameObjects.push(go);
 
-let cartesian = new GameObject(false);
+let cartesian = new GameObject("Plano Cartesiano", false);
 cartesian.m_VertexBuffer = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
 cartesian.m_IndexBuffer = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
 cartesian.m_Vertex =
@@ -128,7 +112,8 @@ var frame = function (now) {
     console.log(count);
     count = 0;
     delta = 0;
-  }  
+  }
+
   //update();
   CanvasContext.RawContext.clearRect(0, 0, CanvasContext.Width, CanvasContext.Height);
   Canvas.CanvasApi.DrawCircle(CanvasContext, { x: CanvasContext.Width / 2, y: CanvasContext.Height / 2 }, 2, { x: 0, y: 0, z: 0, w: 1.0 })
@@ -164,4 +149,27 @@ c.onmouseup = (e) => {
   gameObjects.push(g);
   //Canvas.CanvasApi.DrawLine(CanvasContext, initial, end, { x: 1.0, y: 0, z: 0, w: 1.0 }, 1);
   //Canvas.CanvasApi.DrawCircle(CanvasContext, initial, Math.sqrt((initial.x - end.x) ** 2 + (initial.y - end.y) ** 2), { x: Math.random(), y: Math.random(), z: Math.random(), w: 1.0 })
+}
+
+window.addEventListener("resize", () => {
+  c.width = document.documentElement.clientWidth * 0.75;
+  c.height = document.documentElement.clientHeight;
+  offscreen.width = c.width;
+  offscreen.height = c.height;
+  camera.SetView(Mat4.Viewport(-CanvasContext.Width / 2, CanvasContext.Width / 2, -CanvasContext.Height / 2, CanvasContext.Height / 2, -1, 1));
+  Canvas.CanvasApi.SetLocation(CanvasContext, 0, camera);
+
+  cartesian.m_Vertex =
+    [
+      -CanvasContext.Width / 2, 0, 0,
+      CanvasContext.Width / 2, 0, 0,
+      0, -CanvasContext.Height / 2, 0,
+      0, CanvasContext.Width / 2, 0,
+    ];
+})
+
+for(let g of gameObjects){
+  let option = document.createElement("option");
+  option.text = g.m_Name;
+  gameObjectsSelect.add(option);
 }

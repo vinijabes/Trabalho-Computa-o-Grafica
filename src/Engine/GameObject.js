@@ -4,6 +4,9 @@ const InputController = require('./InputController');
 
 
 module.exports = class GameObject {
+    /**@type {String} */
+    m_Name;
+
     /**@type {Vec3}*/
     m_Position;
 
@@ -24,7 +27,8 @@ module.exports = class GameObject {
 
     m_RotationSpeed = 30.0;
 
-    constructor(mutable = true) {
+    constructor(name, mutable = true) {
+        this.m_Name = name;
         this.m_Mutable = mutable;
         this.m_Transformation = Mat4.Identity();
     }
