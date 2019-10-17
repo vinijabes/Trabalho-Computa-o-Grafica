@@ -1,5 +1,6 @@
 const { Vec3, Mat4 } = require('../Mat');
 const { CanvasApi, CanvasContext } = require('../Canvas');
+const { BufferType, DrawMode } = require('../Constants')
 const GameObject = require('./GameObject');
 
 module.exports = class Circle extends GameObject {
@@ -18,13 +19,13 @@ module.exports = class Circle extends GameObject {
      * @param {CanvasContext} context 
      */
     Render(context) {
-        CanvasApi.AvaBindBuffer(context, CanvasContext.BufferType.AVA_ARRAY_BUFFER, this.m_VertexBuffer);
-        CanvasApi.AvaSetBufferData(context, CanvasContext.BufferType.AVA_ARRAY_BUFFER, this.m_VertexBuffer, this.m_Vertex);
+        CanvasApi.AvaBindBuffer(context, BufferType.AVA_ARRAY_BUFFER, this.m_VertexBuffer);
+        CanvasApi.AvaSetBufferData(context, BufferType.AVA_ARRAY_BUFFER, this.m_VertexBuffer, this.m_Vertex);
 
-        CanvasApi.AvaBindBuffer(context, CanvasContext.BufferType.AVA_ELEMENT_ARRAY_BUFFER, this.m_IndexBuffer);
-        CanvasApi.AvaSetBufferData(context, CanvasContext.BufferType.AVA_ELEMENT_ARRAY_BUFFER, this.m_IndexBuffer, this.m_Index);
+        CanvasApi.AvaBindBuffer(context, BufferType.AVA_ELEMENT_ARRAY_BUFFER, this.m_IndexBuffer);
+        CanvasApi.AvaSetBufferData(context, BufferType.AVA_ELEMENT_ARRAY_BUFFER, this.m_IndexBuffer, this.m_Index);
 
         CanvasApi.SetLocation(context, 1, this.m_Transformation);
-        CanvasApi.AvaDrawElements(context, CanvasContext.DrawMode.AVA_CIRCLE, 3);
+        CanvasApi.AvaDrawElements(context, DrawMode.AVA_CIRCLE, 3);
     }
 }

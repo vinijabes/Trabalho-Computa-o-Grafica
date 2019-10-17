@@ -1,17 +1,7 @@
 const CanvasContext = require('./CanvasContext');
 const { Vec2, Vec3, Vec4, Mat3, Mat4 } = require('../Mat');
 const { Shader, VertexArray, Window, Camera } = require('../Renderer');
-
-const BufferType = {
-    AVA_ARRAY_BUFFER: 0,
-    AVA_ELEMENT_ARRAY_BUFFER: 1
-};
-
-const DrawMode = {
-    AVA_LINES: 0,
-    AVA_TRIANGLES: 1,
-    AVA_CIRCLE: 2
-}
+const {BufferType, DrawMode} = require('../Constants');
 
 var angleX = 0;
 var angleY = 0;
