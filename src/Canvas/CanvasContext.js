@@ -9,7 +9,8 @@ const BufferType = {
 
 const DrawMode = {
     AVA_LINES: 0,
-    AVA_TRIANGLES: 1
+    AVA_TRIANGLES: 1,
+    AVA_CIRCLE: 2
 }
 
 module.exports = class CanvasContext {

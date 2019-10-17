@@ -147,7 +147,7 @@ class Mat4 {
         for(let i = 0; i < 4; i++){
             for(let j = 0; j < 4; j++){
                 for (let k = 0; k < 4; k++) {
-                    result.elements[i][j] += elements1[i][k] * elements2[k][j];
+                    result.elements[i][j] += Math.round((elements1[i][k] * elements2[k][j])*100000)/100000;
                 }
             }
         }

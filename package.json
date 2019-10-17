@@ -6,7 +6,12 @@
   "scripts": {
     "babel": "babel-node main.js",
     "start": "electron .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "com.electron.CG"
   },
   "keywords": [],
   "author": "",
@@ -14,6 +19,7 @@
   "devDependencies": {
     "@babel/preset-env": "^7.5.5",
     "babel-core": "^6.26.3",
-    "electron": "^6.0.2"
+    "electron": "^6.0.2",
+    "electron-builder": "^21.2.0"
   }
 }

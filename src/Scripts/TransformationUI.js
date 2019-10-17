@@ -1,3 +1,4 @@
+const Vec3 = require('../Mat/Vec3');
 const Mat4 = require('../Mat/Mat4');
 const UIObject = require('../UI/UIObject');
 const UIMenu = require('../UI/UIMenu');
@@ -5,6 +6,7 @@ const UIText = require('../UI/UIText');
 const UIInput = require('../UI/UIInput');
 const UIButton = require('../UI/UIButton');
 const UISelect = require('../UI/UISelect');
+const UICheckbox = require('../UI/UICheckbox');
 
 class ActionInput extends UIMenu {
     /**@type {UIText} */
@@ -33,6 +35,10 @@ class ActionInput extends UIMenu {
         this.AddChild(this.m_Text);
         this.AddChild(this.m_Input);
         this.AddChild(this.m_Button);
+    }
+
+    Reset(){
+        this.m_Input.SetValue("");
     }
 
     onSubmit;
@@ -74,6 +80,8 @@ module.exports = class TransformationUI extends UIMenu {
     m_ZRotationInput;
     /**@type {UIButton} */
     m_RotationButton;
+    /**@type {UICheckbox} */
+    m_AxiosCheck;
 
     /**@type {UIMenu} */
     m_ShearingMenu;
@@ -153,15 +161,18 @@ module.exports = class TransformationUI extends UIMenu {
         this.m_XRotationInput = new ActionInput(null, "X:", "Rotate");
         this.m_XRotationInput.onSubmit = (value) => {
             if (this.m_Parent) {
-                let center = this.m_Parent.GetChildOfType(UISelect).Value().center();
+                let center = this.m_AxiosCheck.Value() ? this.m_Parent.GetChildOfType(UISelect).Value().center() : new Vec3(0, 0, 0);
+                
+                console.log(this.m_Parent.GetChildOfType(UISelect).Value());
                 this.m_Parent.GetChildOfType(UISelect).Value().Transform(Mat4.RotationX(value, center.x, center.y, center.z));
+                console.log(this.m_Parent.GetChildOfType(UISelect).Value());
             }
         }
 
         this.m_YRotationInput = new ActionInput(null, "Y:", "Rotate");
         this.m_YRotationInput.onSubmit = (value) => {
             if (this.m_Parent) {
-                let center = this.m_Parent.GetChildOfType(UISelect).Value().center();
+                let center = this.m_AxiosCheck.Value() ? this.m_Parent.GetChildOfType(UISelect).Value().center() : new Vec3(0, 0, 0);
                 this.m_Parent.GetChildOfType(UISelect).Value().Transform(Mat4.RotationY(value, center.x, center.y, center.z));
             }
         }
@@ -169,7 +180,7 @@ module.exports = class TransformationUI extends UIMenu {
         this.m_ZRotationInput = new ActionInput(null, "Z:", "Rotate");
         this.m_ZRotationInput.onSubmit = (value) => {
             if (this.m_Parent) {
-                let center = this.m_Parent.GetChildOfType(UISelect).Value().center();
+                let center = this.m_AxiosCheck.Value() ? this.m_Parent.GetChildOfType(UISelect).Value().center() : new Vec3(0, 0, 0);
                 this.m_Parent.GetChildOfType(UISelect).Value().Transform(Mat4.RotationZ(value, center.x, center.y, center.z));
             }
         }
@@ -177,7 +188,7 @@ module.exports = class TransformationUI extends UIMenu {
         this.m_RotationButton = new UIButton(null, "Rotate");
         this.m_RotationButton.m_DomNode.style.marginTop = '4px';
         this.m_RotationButton.onClick = () => {
-            let center = this.m_Parent.GetChildOfType(UISelect).Value().center();
+            let center = this.m_AxiosCheck.Value() ? this.m_Parent.GetChildOfType(UISelect).Value().center() : new Vec3(0, 0, 0);
             let x = this.m_XRotationInput.GetChildOfType(UIInput).Value();
             let y = this.m_YRotationInput.GetChildOfType(UIInput).Value();
             let z = this.m_ZRotationInput.GetChildOfType(UIInput).Value();
@@ -197,6 +208,15 @@ module.exports = class TransformationUI extends UIMenu {
         this.m_RotationMenu.m_DomNode.style.padding = '8px';
         this.m_RotationMenu.m_DomNode.style.borderTop = '1px solid black';
 
+        let AxiosMenu = new UIMenu(null);
+        AxiosMenu.m_DomNode.style.flexDirection = 'row';
+        this.m_AxiosCheck = new UICheckbox(null, true);
+        this.m_AxiosCheck.m_DomNode.style.margin = 'auto';
+
+        AxiosMenu.AddChild(new UIText(null, "Rotacionar no próprio eixo?"));
+        AxiosMenu.AddChild(this.m_AxiosCheck);
+        this.m_RotationMenu.AddChild(AxiosMenu);
+
         this.AddChild(this.m_RotationMenu);
 
         /** SCALE MENU */
@@ -206,7 +226,7 @@ module.exports = class TransformationUI extends UIMenu {
         this.m_XScaleInput.onSubmit = (value) => {
             if (this.m_Parent) {
                 let center = this.m_Parent.GetChildOfType(UISelect).Value().center();
-                this.m_Parent.GetChildOfType(UISelect).Value().Transform(Mat4.Scale(value, 1, 1, 1, center.x, center.y, center.z));
+                this.m_Parent.GetChildOfType(UISelect).Value().Transform(Mat4.Scale(value, 1, 1, 1));
             }
         }
 
@@ -214,7 +234,7 @@ module.exports = class TransformationUI extends UIMenu {
         this.m_YScaleInput.onSubmit = (value) => {
             if (this.m_Parent) {
                 let center = this.m_Parent.GetChildOfType(UISelect).Value().center();
-                this.m_Parent.GetChildOfType(UISelect).Value().Transform(Mat4.Scale(1, value, 1, 1, center.x, center.y, center.z));
+                this.m_Parent.GetChildOfType(UISelect).Value().Transform(Mat4.Scale(1, value, 1, 1));
             }
         }
 
@@ -222,8 +242,7 @@ module.exports = class TransformationUI extends UIMenu {
         this.m_ZScaleInput.onSubmit = (value) => {
             if (this.m_Parent) {
                 let center = this.m_Parent.GetChildOfType(UISelect).Value().center();
-                console.table(Mat4.Scale(1, 1, value, 1, center.x, center.y, center.z).elements);
-                this.m_Parent.GetChildOfType(UISelect).Value().Transform(Mat4.Scale(1, 1, value, 1, center.x, center.y, center.z));
+                this.m_Parent.GetChildOfType(UISelect).Value().Transform(Mat4.Scale(1, 1, value, 1));
             }
         }
 
@@ -231,20 +250,20 @@ module.exports = class TransformationUI extends UIMenu {
         this.m_GlobalScaleInput.onSubmit = (value) => {
             if (this.m_Parent) {
                 let center = this.m_Parent.GetChildOfType(UISelect).Value().center();
-                this.m_Parent.GetChildOfType(UISelect).Value().Transform(Mat4.Scale(1, 1, 1, value, center.x, center.y, center.z));
+                this.m_Parent.GetChildOfType(UISelect).Value().Transform(Mat4.Scale(1, 1, 1, value));
             }
         }
 
         this.m_ScaleButton = new UIButton(null, "Scale");
         this.m_ScaleButton.m_DomNode.style.marginTop = '4px';
         this.m_ScaleButton.onClick = () => {
-            let x = this.m_XScaleInput.GetChildOfType(UIInput).Value();
-            let y = this.m_YScaleInput.GetChildOfType(UIInput).Value();
-            let z = this.m_ZScaleInput.GetChildOfType(UIInput).Value();
-            let global = this.m_GlobalScaleInput.GetChildOfType(UIInput).Value();
+            let x = this.m_XScaleInput.GetChildOfType(UIInput).Value() ? this.m_XScaleInput.GetChildOfType(UIInput).Value() : 1;
+            let y = this.m_YScaleInput.GetChildOfType(UIInput).Value() ? this.m_YScaleInput.GetChildOfType(UIInput).Value() : 1;
+            let z = this.m_ZScaleInput.GetChildOfType(UIInput).Value() ? this.m_ZScaleInput.GetChildOfType(UIInput).Value() : 1;
+            let global = this.m_GlobalScaleInput.GetChildOfType(UIInput).Value() ? this.m_GlobalScaleInput.GetChildOfType(UIInput).Value() : 1;
             if (this.m_Parent) {
                 let center = this.m_Parent.GetChildOfType(UISelect).Value().center();
-                this.m_Parent.GetChildOfType(UISelect).Value().Transform(Mat4.Scale(x, y, z, global, center.x, center.y, center.z));
+                this.m_Parent.GetChildOfType(UISelect).Value().Transform(Mat4.Scale(x, y, z, global));
             }
         }
 
@@ -308,12 +327,12 @@ module.exports = class TransformationUI extends UIMenu {
         this.m_ShearingButton = new UIButton(null, "Shear");
         this.m_ShearingButton.m_DomNode.style.marginTop = '4px';
         this.m_ShearingButton.onClick = () => {
-            let xy = this.m_ShearXYInput.GetChildOfType(UIInput).Value();
-            let xz = this.m_ShearXZInput.GetChildOfType(UIInput).Value();
-            let yz = this.m_ShearYZInput.GetChildOfType(UIInput).Value();
-            let yx = this.m_ShearYXInput.GetChildOfType(UIInput).Value();
-            let zx = this.m_ShearZXInput.GetChildOfType(UIInput).Value();
-            let zy = this.m_ShearZYInput.GetChildOfType(UIInput).Value();
+            let xy = this.m_ShearXYInput.GetChildOfType(UIInput).Value() ? this.m_ShearXYInput.GetChildOfType(UIInput).Value() : 0;
+            let xz = this.m_ShearXZInput.GetChildOfType(UIInput).Value() ? this.m_ShearXZInput.GetChildOfType(UIInput).Value() : 0;
+            let yz = this.m_ShearYZInput.GetChildOfType(UIInput).Value() ? this.m_ShearYZInput.GetChildOfType(UIInput).Value() : 0;
+            let yx = this.m_ShearYXInput.GetChildOfType(UIInput).Value() ? this.m_ShearYXInput.GetChildOfType(UIInput).Value() : 0;
+            let zx = this.m_ShearZXInput.GetChildOfType(UIInput).Value() ? this.m_ShearZXInput.GetChildOfType(UIInput).Value() : 0;
+            let zy = this.m_ShearZYInput.GetChildOfType(UIInput).Value() ? this.m_ShearZYInput.GetChildOfType(UIInput).Value() : 0;
 
             if (this.m_Parent) {
                 this.m_Parent.GetChildOfType(UISelect).Value().Transform(Mat4.Shear(xy, xz, yz, yx, zx, zy));
@@ -338,5 +357,27 @@ module.exports = class TransformationUI extends UIMenu {
 
     SetParent(parent) {
         super.SetParent(parent);
+    }
+
+    Reset(){
+        this.m_XTranslationInput.Reset();
+        this.m_YTranslationInput.Reset();
+        this.m_ZTranslationInput.Reset();
+
+        this.m_XRotationInput.Reset();
+        this.m_YRotationInput.Reset();
+        this.m_ZRotationInput.Reset();
+        
+        this.m_XScaleInput.Reset();
+        this.m_YScaleInput.Reset();
+        this.m_ZScaleInput.Reset();
+        this.m_GlobalScaleInput.Reset();
+
+        this.m_ShearXYInput.Reset();
+        this.m_ShearXZInput.Reset();
+        this.m_ShearYXInput.Reset();
+        this.m_ShearZXInput.Reset();
+        this.m_ShearYZInput.Reset();
+        this.m_ShearZYInput.Reset();
     }
 }

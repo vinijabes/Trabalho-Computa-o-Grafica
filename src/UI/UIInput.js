@@ -13,6 +13,9 @@ module.exports = class UIInput extends UIObject {
         super(parent, document.createElement('input'));
         this.m_Value = value;
         this.m_DomNode.value = value;
+        this.m_DomNode.onkeyup = (e) => {
+            this.m_Value = this.m_DomNode.value;
+        }
     }
 
     Render(){

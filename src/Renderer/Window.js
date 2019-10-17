@@ -1,5 +1,7 @@
 const Vec2 = require('../Mat/Vec2');
 const Vec3 = require('../Mat/Vec3');
+const Vec4 = require('../Mat/Vec4');
+const Camera = require('./Camera');
 
 const status = {
     INSIDE: 0,
@@ -33,7 +35,7 @@ module.exports = class Window {
             code |= status.TOP;
 
         //console.log(this.position.x + this.size.x, vec.x);
-            
+
         return code;
     }
 
@@ -53,7 +55,7 @@ module.exports = class Window {
         while (true) {
 
             if ((code1 == 0) && (code2 == 0)) {
-                accept = true;                
+                accept = true;
                 return true;
             } else if (code1 & code2) {
                 return false;
@@ -86,5 +88,20 @@ module.exports = class Window {
                 code2 = this._VertexCode(dest);
             }
         }
+    }
+
+    /**
+     * 
+     * @param {Vec2} point 
+     * @param {Camera} camera 
+     */
+    Inside(point, width, height) {
+        let bounding = new Vec4(this.position.x * width + width,
+            this.position.y * height + height,
+            (this.position.x + this.size.x/2) * width + width,
+            (this.position.y + this.size.y/2) * height + height)
+        //console.log(bounding, point);
+        return point.x > bounding.x && point.x < bounding.z
+            && point.y > bounding.y && point.y < bounding.w;
     }
 }
