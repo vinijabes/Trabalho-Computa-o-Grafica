@@ -1,16 +1,7 @@
 const CanvasContext = require('./CanvasContext');
 const { Vec2, Vec3, Vec4, Mat3, Mat4 } = require('../Mat');
 const { Shader, VertexArray, Window, Camera } = require('../Renderer');
-
-const BufferType = {
-    AVA_ARRAY_BUFFER: 0,
-    AVA_ELEMENT_ARRAY_BUFFER: 1
-};
-
-const DrawMode = {
-    AVA_LINES: 0,
-    AVA_TRIANGLES: 1
-}
+const {BufferType, DrawMode} = require('../Constants');
 
 var angleX = 0;
 var angleY = 0;
@@ -51,8 +42,7 @@ module.exports = class CanvasApi {
      * 
      * @param {CanvasContext} context 
      */
-    static SwapBuffer(context){
-        //console.log(context.RendererBuffer);
+    static SwapBuffer(context) {
         context.RawContext.putImageData(context.RendererBuffer, 0, 0);
         context.RendererBuffer = context.RawContext.createImageData(context.Width, context.Height);
     }
@@ -62,12 +52,13 @@ module.exports = class CanvasApi {
      * @param {CanvasContext} context 
      */
     static DrawPixel(context, position, color) {
+        if (position.x > context.Width || position.x < 0 || position.y > context.Height || position.y < 0) return;;
         const d = context.RendererBuffer.data;
 
-        d[(Math.round(position.y) * Math.floor(context.Width) + Math.round(position.x))*4] = color.x * 255;
-        d[(Math.round(position.y) * Math.floor(context.Width) + Math.round(position.x))*4 + 1] = color.y * 255;
-        d[(Math.round(position.y) * Math.floor(context.Width) + Math.round(position.x))*4 + 2] = color.z * 255;
-        d[(Math.round(position.y) * Math.floor(context.Width) + Math.round(position.x))*4 + 3] = color.w * 255;
+        d[(Math.round(position.y) * Math.floor(context.Width) + Math.round(position.x)) * 4] = color.x * 255;
+        d[(Math.round(position.y) * Math.floor(context.Width) + Math.round(position.x)) * 4 + 1] = color.y * 255;
+        d[(Math.round(position.y) * Math.floor(context.Width) + Math.round(position.x)) * 4 + 2] = color.z * 255;
+        d[(Math.round(position.y) * Math.floor(context.Width) + Math.round(position.x)) * 4 + 3] = color.w * 255;
     }
 
     /**
@@ -98,39 +89,47 @@ module.exports = class CanvasApi {
      * 
      * @param {CanvasContext} context 
      * @param {Vec2} center 
+     * @param {number} x 
+     * @param {number} y 
+     */
+    static DrawCircleSimetry(context, center, x, y, color) {
+        const window = context.GetLocation(2);
+
+        this.DrawPixel(context, { x: center.x + x, y: center.y + y }, color);
+        this.DrawPixel(context, { x: center.x - x, y: center.y + y }, color);
+        this.DrawPixel(context, { x: center.x + x, y: center.y - y }, color);
+        this.DrawPixel(context, { x: center.x - x, y: center.y - y }, color);
+        this.DrawPixel(context, { x: center.x + y, y: center.y + x }, color);
+        this.DrawPixel(context, { x: center.x - y, y: center.y + x }, color);
+        this.DrawPixel(context, { x: center.x + y, y: center.y - x }, color);
+        this.DrawPixel(context, { x: center.x - y, y: center.y - x }, color);
+    }
+
+    /**
+     * 
+     * @param {CanvasContext} context 
+     * @param {Vec2} center 
      * @param {number} radius 
      * @param {Vec3} color 
      */
     static DrawCircle(context, center, radius, color) {
-        //let inc = 1.5/radius*Math.sqrt(radius);
-        // this.DrawPixel(context, center, color);
-        // for(let i = 0; i < 360; i += inc){
-        //     let x = Math.round(radius*Math.cos(i/180*Math.PI)) + center.x;
-        //     let y = Math.round(radius*Math.sin(i/180*Math.PI)) + center.y;
+        let x = 0;
+        let y = radius;
+        let d = 3 - 2 * radius;
+        this.DrawCircleSimetry(context, center, x, y, color);
 
-        //     this.DrawPixel(context, {x, y}, color);
-        // }
+        while (y >= x) {
+            x++;
 
-        let inc = 1.5 / radius * Math.sqrt(radius);
+            if (d > 0) {
+                y--;
+                d = d + 4 * (x - y) + 10;
+            } else {
+                d = d + 4 * x + 6;
+            }
 
-
-        for (let y = -radius * Math.sqrt(2) / 2; y < radius * Math.sqrt(2) / 2; y += inc) {
-            let x = Math.sqrt(radius * radius - y * y);
-            this.DrawPixel(context, { x: center.x + x, y: center.y + y }, color);
-            this.DrawPixel(context, { x: center.x - x, y: center.y + y }, color);
+            this.DrawCircleSimetry(context, center, x, y, color);
         }
-
-        for (let x = -radius * Math.sqrt(2) / 2; x < radius * Math.sqrt(2) / 2; x += inc) {
-            let y = Math.sqrt(radius * radius - x * x);
-            this.DrawPixel(context, { x: center.x + x, y: center.y + y }, color);
-            this.DrawPixel(context, { x: center.x + x, y: center.y - y }, color);
-        }
-
-        // for(let y = 0; y < radius*Math.sqrt(2)/2; y += inc){
-        //     let x = Math.sqrt(radius*radius - y*y);
-        //     this.DrawPixel(context, {x: center.x + x, y: center.y + y}, color);
-        //     this.DrawPixel(context, {x: center.x - x, y: center.y + y}, color);
-        // }
     }
 
     /**
@@ -249,7 +248,7 @@ module.exports = class CanvasApi {
      * @param {number} location
      * @param {any} value 
      */
-    static SetLocation(context, location, value){
+    static SetLocation(context, location, value) {
         context.SetLocation(location, value);
     }
 
@@ -257,7 +256,7 @@ module.exports = class CanvasApi {
      * @param {CanvasContext} context
      * @param {number} location
      */
-    static GetLocation(context, location){
+    static GetLocation(context, location) {
         return context.GetLocation(location);
     }
 
@@ -274,6 +273,9 @@ module.exports = class CanvasApi {
                 break;
             case DrawMode.AVA_TRIANGLES:
                 this._DrawTriangle(n, offset);
+                break;
+            case DrawMode.AVA_CIRCLE:
+                this._DrawCircle(context, n, offset);
                 break;
         }
         //return context.AvaDrawElements(mode, n, offset);
@@ -301,42 +303,17 @@ module.exports = class CanvasApi {
 
         let lines = [];
         for (let i = 2; i <= indexBufferSize; i += 2) lines.push(indexBuffer.slice(i - 2, i));
-        const ortho = Mat4.Ortho();
-        const matrix = new Mat3([[1, 0, 0.2], [0, 1, 0.1], [0, 0, 1]]);
-        // const rotationX = Mat4.RotationX(angleX);
-        // const rotationY = Mat4.RotationY(angleY);
-        const translation1 = Mat4.Translation(-150, -150, -(100 + 320) / 2);
-        const translation2 = Mat4.Translation(150, 150, (100 + 320) / 2);
-        const cavaleira = Mat4.Cavaleira();
-        const cabinet = Mat4.Cabinet();
-        const scaleM = Mat4.Scale(1, 1, 1, 0.5);
-        const identity = Mat4.Identity();
 
         const camera = context.GetLocation(0);
         const transformation = context.GetLocation(1);
-        
+
         const window = context.GetLocation(2);
 
         for (let line of lines) {
             v1 = new Vec3((vertexBuffer[line[0] * n + offset]), (vertexBuffer[line[0] * n + 1 + offset]), vertexBuffer[line[0] * n + 2]);
             v2 = new Vec3((vertexBuffer[line[1] * n + offset]), (vertexBuffer[line[1] * n + 1 + offset]), vertexBuffer[line[1] * n + 2]);
 
-            // v1 = v1.multiplyMat4(translation1);
-            // v2 = v2.multiplyMat4(translation1);
-
-            // v1 = v1.multiplyMat4(rotationX);
-            // v2 = v2.multiplyMat4(rotationX);
-
-            // v1 = v1.multiplyMat4(rotationY);
-            // v2 = v2.multiplyMat4(rotationY);
-
-            // v1 = v1.multiplyMat4(scaleM);
-            // v2 = v2.multiplyMat4(scaleM);
-
-            // v1 = v1.multiplyMat4(translation2);
-            // v2 = v2.multiplyMat4(translation2);
-            
-            if(transformation){
+            if (transformation) {
                 v1 = v1.multiplyMat4(transformation);
                 v2 = v2.multiplyMat4(transformation);
             }
@@ -344,20 +321,6 @@ module.exports = class CanvasApi {
             v1 = v1.multiplyMat4(camera.m_Transformation.multiplyMat4(camera.projectionViewMatrix));
             v2 = v2.multiplyMat4(camera.m_Transformation.multiplyMat4(camera.projectionViewMatrix));
 
-            //v1 = viewport.multiplyVec3(v1);
-            //v2 = viewport.multiplyVec3(v2);
-
-            //console.log(v1);
-            // v1 = v1.multiplyMat3(matrix);
-            // v2 = v2.multiplyMat3(matrix);
-
-            // let scale = 1;
-
-            // v1.x = v1.x / context.Width;
-            // v1.y = v1.y / context.Height;
-
-            // v2.x = v2.x / context.Width;
-            // v2.y = v2.y / context.Height;
             if (!window.Clip(v1, v2)) continue;
 
             v1.x = (v1.x / 2 + 0.5) * context.Width;
@@ -370,5 +333,44 @@ module.exports = class CanvasApi {
 
             this.DrawLine(context, v1, v2, { x: 0, y: 0, z: 0, w: 1.0 });
         }
+    }
+
+    /**
+     *
+     * @param {CanvasContext} context  
+     * @param {number} n 
+     * @param {number} offset      
+     */
+    static _DrawCircle(context, n, offset) {
+        /**@type {Array} */
+        const vertexBuffer = context.m_Buffers[context.m_BindedBuffers[BufferType.AVA_ARRAY_BUFFER]];
+        /**@type {Array} */
+        const indexBuffer = context.m_Buffers[context.m_BindedBuffers[BufferType.AVA_ELEMENT_ARRAY_BUFFER]];
+        /**@type {VertexArray} */
+        const vertexArray = context.m_VertexArray;
+
+        /**@type {Vec3} */
+        let v1;
+        let indexBufferSize = indexBuffer.length;
+
+        let circles = indexBuffer.slice();
+
+        const camera = context.GetLocation(0);
+        const transformation = context.GetLocation(1);
+
+        for (let circle of circles) {
+            v1 = new Vec3((vertexBuffer[circle * n + offset]), (vertexBuffer[circle * n + 1 + offset]), vertexBuffer[circle * n + 2]);
+            let radius = v1.z;
+            if (transformation) v1 = v1.multiplyMat4(transformation);
+
+            v1 = v1.multiplyMat4(camera.m_Transformation.multiplyMat4(camera.view));
+
+            v1.x = (v1.x / 2 + 0.5) * context.Width;
+            v1.y = (-v1.y / 2 + 0.5) * context.Height;
+
+            this.DrawCircle(context, new Vec2(v1.x, v1.y), radius, { x: 0, y: 0, z: 0, w: 1.0 });
+
+        }
+
     }
 }

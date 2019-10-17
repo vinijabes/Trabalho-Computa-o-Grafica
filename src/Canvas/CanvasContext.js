@@ -1,16 +1,7 @@
 const {Vec2, Vec3, Vec4} = require('../Mat');
+const {BufferType, DrawMode} = require('../Constants');
 const VertexArray = require('../Renderer/VertexArray');
 const API = require('./CanvasApi');
-
-const BufferType = {
-    AVA_ARRAY_BUFFER: 0,
-    AVA_ELEMENT_ARRAY_BUFFER: 1
-};
-
-const DrawMode = {
-    AVA_LINES: 0,
-    AVA_TRIANGLES: 1
-}
 
 module.exports = class CanvasContext {
     /**@type {Array.<Object>}*/
@@ -57,8 +48,8 @@ module.exports = class CanvasContext {
      */
     AvaBindBuffer(bufferType, buffer) {
         switch (bufferType) {
-            case CanvasContext.BufferType.AVA_ARRAY_BUFFER:
-            case CanvasContext.BufferType.AVA_ELEMENT_ARRAY_BUFFER:
+            case BufferType.AVA_ARRAY_BUFFER:
+            case BufferType.AVA_ELEMENT_ARRAY_BUFFER:
                 this.m_BindedBuffers[bufferType] = buffer;
                 break;
             default:
@@ -253,15 +244,5 @@ module.exports = class CanvasContext {
 
     get RawContext() { return this.m_Context; }
     get Width() { return this.m_Context.canvas.width; }
-    get Height() { return this.m_Context.canvas.height; }
-
-    /**
-     * @returns {BufferType}
-     */
-    static get BufferType() { return BufferType; }
- 
-    /**
-     * @returns {DrawMode}
-     */
-    static get DrawMode() { return DrawMode; }    
+    get Height() { return this.m_Context.canvas.height; }  
 }

@@ -77,4 +77,15 @@ module.exports = class UIObject {
     Render() {
         for (let c of this.m_Children) c.Render();
     }
+
+    Show(){
+        if(this.m_DomNode.style.display != 'none') return;
+        this.m_DomNode.style.display = this.initialDisplay;
+    }
+
+    Hide(){
+        if(this.m_DomNode.style.display == 'none') return;
+        this.initialDisplay = this.m_DomNode.style.display;
+        this.m_DomNode.style.display = 'none';
+    }
 }

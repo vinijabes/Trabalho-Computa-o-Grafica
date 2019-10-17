@@ -51,6 +51,7 @@ module.exports = class UISelect extends UIObject {
     }
 
     Value(){
+        if(!this.m_DomNode.value) return null;
         return this.m_Options[this.m_DomNode.value].value;
     }
 }
