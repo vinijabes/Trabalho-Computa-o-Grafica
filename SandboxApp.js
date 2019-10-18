@@ -30,6 +30,10 @@ test.AddComponent(MeshRenderer);
 test.AddComponent(Collider);
 test.Transform.Translate({ x: 100, y: 100, z: 100 });
 
+
+let TestObject = new GO();
+TestObject.AddComponent(MeshRenderer);
+
 const vertexArray = new VertexArray();
 vertexArray.AddVextexAttrib(0, VertexArray.AvaType.Vec3);
 vertexArray.AddVextexAttrib(1, VertexArray.AvaType.Vec4);
@@ -74,6 +78,43 @@ const indicesVertices =
 
 test.GetComponent(MeshRenderer).m_Mesh.Index = indicesVertices;
 test.GetComponent(MeshRenderer).m_Mesh.Vertex = verticesCasa;
+
+TestObject.GetComponent(MeshRenderer).m_Mesh.Vertex = [
+  -30, -10, -40,//0
+  -10, -10, -40,//1
+  -30, -10, 40,//2
+  -10, -10, 40,//3
+  -30, 10, -40,//4
+  -10, 10, -40,//5
+  -30, 10, 40,//6
+  -10, 10, 40,//7
+  10, -10, -40, //8
+  10, 10, -40, //9
+  30, -10, -40, //11
+  30, 10, -40, //11
+]
+
+TestObject.GetComponent(MeshRenderer).m_Mesh.Index = [
+  0, 1,
+  0, 2,
+  0, 4,
+  1, 3,
+  1, 5,
+  1, 10,
+  2, 3,
+  2, 6,
+  3, 7,
+  3, 8,
+  4, 5,
+  5, 7,
+  5, 11,
+  6, 7,
+  7, 9,
+  8, 9,
+  10, 11
+]
+
+TestObject.Transform.Scale(1, 1, 1, 1/4);
 
 let camera = new Camera();
 let projection = Mat4.Ortho();
@@ -219,7 +260,8 @@ var update = (delta) => {
   for (let g of gameObjects) {
     g.Update(delta);
   }
-  test.Update();
+  //test.Update();
+  TestObject.Update();
   camera.Update(delta);
   menu.Update(delta);
   if (!select.Value()) return;

@@ -22,8 +22,7 @@ module.exports = class MeshRenderer extends MonoBehavior {
     /**@type {Mat4} */
     m_Transform;
 
-    Start() {
-        //this.m_VAO = CanvasApi.AvaCreateVertexArray(CanvasApi.s_Context, 1);
+    Start() {        
         this.m_VBO = CanvasApi.AvaCreateBuffer(CanvasApi.s_Context, 1);
         this.m_EBO = CanvasApi.AvaCreateBuffer(CanvasApi.s_Context, 1);
         this.Mesh = new Mesh();

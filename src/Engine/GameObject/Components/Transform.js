@@ -79,5 +79,10 @@ module.exports = class Transform extends MonoBehavior {
         this.m_Position.Add(translation);
     }
 
-
+    Scale(x, y, z, global){
+        this.m_HasChanged = true;
+        this.m_Scale.x *= x/global; 
+        this.m_Scale.y *= x/global; 
+        this.m_Scale.z *= x/global; 
+    }
 }
