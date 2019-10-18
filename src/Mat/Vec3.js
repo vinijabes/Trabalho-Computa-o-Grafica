@@ -43,15 +43,68 @@ class Vec3 {
         return this;
     }
 
+    /**
+     * 
+     * @param {Vec3} v1 
+     * @param {Vec3} v2 
+     */
+    static Add(v1, v2) {
+        return new Vec3(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
+    }
+
+    /**
+     * 
+     * @param {Vec3} v3
+     */
+    Sub(v3) {
+        this.x -= v3.x;
+        this.y -= v3.y;
+        this.z -= v3.z;
+        return this;
+    }
+
+    /**
+     * 
+     * @param {Vec3} v1 
+     * @param {Vec3} v2 
+     */
+    static Sub(v1, v2) {
+        return new Vec3(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
+    }
+
+    /**
+     * 
+     * @param {number} a
+     */
+    Div(a) {
+        this.x /= a;
+        this.y /= a;
+        this.z /= a;
+        return this;
+    }
+
+    /**
+     * 
+     * @param {Vec3} v3
+     * @param {number} a
+     */
+    static Div(v3, a) {
+        return new Vec3(v3.x / a, v3.y / a, v3.z / a);
+    }
+
+    Clone() {
+        return Object.assign(Object.create(Object.getPrototypeOf(this)), this);
+    }
+
     Normalize() {
         let mag = Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
-        
+
         if (mag > 0) {
             this.x /= mag;
             this.y /= mag;
             this.z /= mag;
         }
-        
+
         return this;
     }
 

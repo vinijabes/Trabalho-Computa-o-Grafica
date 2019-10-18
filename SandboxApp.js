@@ -10,6 +10,7 @@ const UI = require('./src/UI');
 const TransformationUI = require('./src/Scripts/TransformationUI');
 const GO = require('./src/Engine/GameObject/GameObject');
 const MeshRenderer = require('./src/Engine/GameObject/Components/MeshRenderer');
+const Collider = require('./src/Engine/GameObject/Components/Collider');
 const RendererSystem = require('./src/Engine/RendererSystem');
 const Time = require('./src/Engine/Time');
 
@@ -27,6 +28,7 @@ Ava.Canvas.CanvasApi.s_Context = CanvasContext;
 let test = new GO();
 test.AddComponent(MeshRenderer);
 test.AddComponent(MeshRenderer);
+test.AddComponent(Collider);
 test.Transform.Translate({ x: 100, y: 100, z: 100 });
 console.log(test);
 

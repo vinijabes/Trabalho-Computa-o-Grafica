@@ -35,7 +35,7 @@ module.exports = class MeshRenderer extends MonoBehavior {
         CanvasApi.AvaBindBuffer(CanvasApi.s_Context, BufferType.AVA_ELEMENT_ARRAY_BUFFER, this.m_EBO);
 
         CanvasApi.SetLocation(CanvasApi.s_Context, 1, this.GameObject.Transform.Transformation);
-
+        
         CanvasApi.AvaDrawElements(CanvasApi.s_Context, DrawMode.AVA_LINES, 3);
     }
 

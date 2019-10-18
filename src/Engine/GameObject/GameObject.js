@@ -27,10 +27,16 @@ module.exports = class GameObject {
      * @param {MonoBehavior} ComponentType 
      */
     AddComponent(ComponentType) {
-        let newComponent = new ComponentType();
-        newComponent.m_GameObject = this;
-        newComponent.Start();
-        this.m_Components.push(newComponent);
+        if (ComponentType.prototype && ComponentType == ComponentType.prototype.constructor) {
+            let newComponent = new ComponentType();
+            newComponent.m_GameObject = this;
+            newComponent.Start();
+            this.m_Components.push(newComponent);
+        }else{
+            ComponentType.m_GameObject = this;
+            ComponentType.Start();
+            this.m_Components.push(ComponentType);
+        }
     }
 
     /**
@@ -99,11 +105,11 @@ module.exports = class GameObject {
             }
 
             if (InputController.Instance().IsKeyDown(39)) {
-                this.Transform.Translate(new Vec3(this.m_TranslationSpeed * Time.delta, 0, 0));                
+                this.Transform.Translate(new Vec3(this.m_TranslationSpeed * Time.delta, 0, 0));
             }
 
             if (InputController.Instance().IsKeyDown(38)) {
-                this.Transform.Translate(new Vec3(0, this.m_TranslationSpeed * Time.delta, 0));                
+                this.Transform.Translate(new Vec3(0, this.m_TranslationSpeed * Time.delta, 0));
             }
 
             if (InputController.Instance().IsKeyDown(40)) {
