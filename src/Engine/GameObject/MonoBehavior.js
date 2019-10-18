@@ -1,3 +1,5 @@
+const GameObject = require('./GameObject');
+
 module.exports = class MonoBehavior {
 
     Start() {
@@ -35,6 +37,8 @@ module.exports = class MonoBehavior {
     toString() { return this.Name; }
 
     get Enabled() { return this.m_Enabled; }
+
+    /**@type {GameObject} */
     get GameObject() { return this.m_GameObject; }
     get Transform() { return this.GameObject.Transform; }
     get Name() { return this.GameObject.Name; }

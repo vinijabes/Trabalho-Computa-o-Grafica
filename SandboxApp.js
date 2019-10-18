@@ -8,6 +8,10 @@ const Circle = require('./src/Engine/Circle');
 const Window = require('./src/Renderer/Window');
 const UI = require('./src/UI');
 const TransformationUI = require('./src/Scripts/TransformationUI');
+const GO = require('./src/Engine/GameObject/GameObject');
+const MeshRenderer = require('./src/Engine/GameObject/Components/MeshRenderer');
+const RendererSystem = require('./src/Engine/RendererSystem');
+const Time = require('./src/Engine/Time');
 
 const gameObjectsSelect = document.getElementById("gameobjects");
 const c = document.getElementById('view');
@@ -17,6 +21,14 @@ c.height = document.documentElement.clientHeight;
 
 const context = c.getContext('bitmaprenderer');
 const CanvasContext = new Canvas.CanvasContext(offscreen.getContext('2d'));
+
+Ava.Canvas.CanvasApi.s_Context = CanvasContext;
+
+let test = new GO();
+test.AddComponent(MeshRenderer);
+test.AddComponent(MeshRenderer);
+test.Transform.Translate({ x: 100, y: 100, z: 100 });
+console.log(test);
 
 const vertexArray = new VertexArray();
 vertexArray.AddVextexAttrib(0, VertexArray.AvaType.Vec3);
@@ -28,16 +40,16 @@ let IndexBufferCasa = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
 
 const verticesCasa =
   [
-    100, 100, 100,//0
-    200, 100, 100,//1
-    200, 100, 250,//2
-    100, 100, 250,//3
-    100, 200, 250,//4
-    200, 200, 250,//5
-    200, 200, 100,//6
-    100, 200, 100,//7
-    150, 100, 320,//8
-    150, 200, 320, //9
+    -50, -50, -110,//0
+    50, -50, -110,//1
+    50, -50, 40,//2
+    -50, -50, 40,//3
+    -50, 50, 40,//4
+    50, 50, 40,//5
+    50, 50, -110,//6
+    -50, 50, -110,//7
+    0, -50, 110,//8
+    0, 50, 110, //9
   ];
 const indicesVertices =
   [
@@ -59,6 +71,13 @@ const indicesVertices =
     2, 8,//16
     8, 9
   ]
+
+test.GetComponent(MeshRenderer).m_Mesh.Index = indicesVertices;
+test.GetComponent(MeshRenderer).m_Mesh.Vertex = verticesCasa;
+
+test.GetComponents(MeshRenderer)[1].m_Mesh.Index = [0, 1, 0, 2, 0, 3];
+test.GetComponents(MeshRenderer)[1].m_Mesh.Vertex = [0, 0, 0, 0, 150, 0, 150, 0, 0, 0, 0, 150];
+console.log(test.GetComponent(MeshRenderer));
 
 let camera = new Camera();
 let projection = Mat4.Ortho();
@@ -200,9 +219,11 @@ menu.AddChild(DrawingMenu);
 menu.Render();
 
 var update = (delta) => {
+  Time.delta = delta;
   for (let g of gameObjects) {
     g.Update(delta);
   }
+  test.Update();
   camera.Update(delta);
   menu.Update(delta);
   if (!select.Value()) return;
@@ -213,7 +234,7 @@ var update = (delta) => {
 
 var render = () => {
   for (let g of gameObjects) g.Render(CanvasContext);
-
+  RendererSystem.Flush();
   Canvas.CanvasApi.SwapBuffer(CanvasContext);
   let bitmap = offscreen.transferToImageBitmap();
   context.transferFromImageBitmap(bitmap);

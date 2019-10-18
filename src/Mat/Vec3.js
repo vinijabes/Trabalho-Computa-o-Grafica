@@ -32,6 +32,41 @@ class Vec3 {
         return vec3;
     }
 
+    /**
+     * 
+     * @param {Vec3} v3
+     */
+    Add(v3) {
+        this.x += v3.x;
+        this.y += v3.y;
+        this.z += v3.z;
+        return this;
+    }
+
+    Normalize() {
+        let mag = Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
+        
+        if (mag > 0) {
+            this.x /= mag;
+            this.y /= mag;
+            this.z /= mag;
+        }
+        
+        return this;
+    }
+
+    static Right() {
+        return new Vec3(1, 0, 0);
+    }
+
+    static Up() {
+        return new Vec3(0, 1, 0);
+    }
+
+    static Forward() {
+        return new Vec3(0, 0, 1);
+    }
+
     get x() { return this._x; }
     get y() { return this._y; }
     get z() { return this._z; }

@@ -38,6 +38,9 @@ module.exports = class CanvasApi {
     /** @type {VertexArray}*/
     static s_VertexArray;
 
+    /** @type {CanvasContext} */
+    static s_Context
+
     /**
      * 
      * @param {CanvasContext} context 
@@ -328,8 +331,6 @@ module.exports = class CanvasApi {
 
             v2.x = (v2.x / 2 + 0.5) * context.Width;
             v2.y = (-v2.y / 2 + 0.5) * context.Height;
-
-
 
             this.DrawLine(context, v1, v2, { x: 0, y: 0, z: 0, w: 1.0 });
         }
