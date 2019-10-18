@@ -92,6 +92,38 @@ class Vec3 {
         return new Vec3(v3.x / a, v3.y / a, v3.z / a);
     }
 
+    /**
+     * 
+     * @param {number} a
+     */
+    Mult(a) {
+        this.x *= a;
+        this.y *= a;
+        this.z *= a;
+        return this;
+    }
+
+    /**
+     * 
+     * @param {Vec3} v3
+     * @param {number} a
+     */
+    static Mult(v3, a) {
+        return new Vec3(v3.x * a, v3.y * a, v3.z * a);
+    }
+
+    /**
+     * 
+     * @param {Vec3} v3 
+     */
+    Dot(v3) {
+        return this.x * v3.x + this.y * v3.y + this.z * v3.z;
+    }
+
+    Norm() {
+        return Math.sqrt(this.Dot(this));
+    }
+
     Clone() {
         return Object.assign(Object.create(Object.getPrototypeOf(this)), this);
     }

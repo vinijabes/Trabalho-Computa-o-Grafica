@@ -19,6 +19,9 @@ module.exports = class MeshRenderer extends MonoBehavior {
     /**@type {number} */
     m_EBO;
 
+    /**@type {Mat4} */
+    m_Transform;
+
     Start() {
         //this.m_VAO = CanvasApi.AvaCreateVertexArray(CanvasApi.s_Context, 1);
         this.m_VBO = CanvasApi.AvaCreateBuffer(CanvasApi.s_Context, 1);
@@ -34,8 +37,11 @@ module.exports = class MeshRenderer extends MonoBehavior {
         CanvasApi.AvaBindBuffer(CanvasApi.s_Context, BufferType.AVA_ARRAY_BUFFER, this.m_VBO);
         CanvasApi.AvaBindBuffer(CanvasApi.s_Context, BufferType.AVA_ELEMENT_ARRAY_BUFFER, this.m_EBO);
 
-        CanvasApi.SetLocation(CanvasApi.s_Context, 1, this.GameObject.Transform.Transformation);
-        
+        if (!this.m_Transform)
+            CanvasApi.SetLocation(CanvasApi.s_Context, 1, this.GameObject.Transform.Transformation);
+        else
+            CanvasApi.SetLocation(CanvasApi.s_Context, 1, this.GameObject.Transform.m_Transform);
+
         CanvasApi.AvaDrawElements(CanvasApi.s_Context, DrawMode.AVA_LINES, 3);
     }
 

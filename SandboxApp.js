@@ -10,7 +10,7 @@ const UI = require('./src/UI');
 const TransformationUI = require('./src/Scripts/TransformationUI');
 const GO = require('./src/Engine/GameObject/GameObject');
 const MeshRenderer = require('./src/Engine/GameObject/Components/MeshRenderer');
-const Collider = require('./src/Engine/GameObject/Components/Collider');
+const Collider = require('./src/Engine/GameObject/Components/SphereCollider');
 const RendererSystem = require('./src/Engine/RendererSystem');
 const Time = require('./src/Engine/Time');
 
@@ -27,10 +27,8 @@ Ava.Canvas.CanvasApi.s_Context = CanvasContext;
 
 let test = new GO();
 test.AddComponent(MeshRenderer);
-test.AddComponent(MeshRenderer);
 test.AddComponent(Collider);
 test.Transform.Translate({ x: 100, y: 100, z: 100 });
-console.log(test);
 
 const vertexArray = new VertexArray();
 vertexArray.AddVextexAttrib(0, VertexArray.AvaType.Vec3);
@@ -76,10 +74,6 @@ const indicesVertices =
 
 test.GetComponent(MeshRenderer).m_Mesh.Index = indicesVertices;
 test.GetComponent(MeshRenderer).m_Mesh.Vertex = verticesCasa;
-
-test.GetComponents(MeshRenderer)[1].m_Mesh.Index = [0, 1, 0, 2, 0, 3];
-test.GetComponents(MeshRenderer)[1].m_Mesh.Vertex = [0, 0, 0, 0, 150, 0, 150, 0, 0, 0, 0, 150];
-console.log(test.GetComponent(MeshRenderer));
 
 let camera = new Camera();
 let projection = Mat4.Ortho();

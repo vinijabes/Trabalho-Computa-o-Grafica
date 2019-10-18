@@ -19,7 +19,7 @@ module.exports = class Collider extends MonoBehavior {
 
         this.m_mesh = new MeshRenderer();
         this.GameObject.AddComponent(this.m_mesh);
-
+        
         this.m_mesh.m_Mesh.Vertex = [
             this.m_Bounds.Min.x,
             this.m_Bounds.Min.y,

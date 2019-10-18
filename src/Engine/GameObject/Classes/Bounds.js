@@ -1,4 +1,5 @@
-const { Vec3 } = require('../../../Mat');
+const { Vec3, Mat4 } = require('../../../Mat');
+const Plane = require('./Plane');
 
 module.exports = class Bounds {
     /**@type {Vec3}*/
@@ -15,6 +16,8 @@ module.exports = class Bounds {
 
     /**@type {Vec3}*/
     m_Min;
+
+    m_Rotation;
 
     /**@type {Vec3}*/
     get Min() { return this.m_Min; }
@@ -61,5 +64,14 @@ module.exports = class Bounds {
         return (this.Min.x <= bounds.Max.x && this.Max.x >= bounds.Min.x) &&
             (this.Min.y <= bounds.Max.y && this.Max.y >= bounds.Min.y) &&
             (this.Min.z <= bounds.Max.z && this.Max.z >= bounds.Min.z)
+    }
+
+    /**
+     * 
+     * @param {Vec3} point 
+     */
+    ClosestPointOnBounds(point) {
+        let top = new Plane();
+        top.m_Normal
     }
 }

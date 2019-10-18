@@ -1,4 +1,5 @@
-const { Mat4 } = require('../Mat/index');
+const { Vec3, Mat4 } = require('../Mat/index');
+const CanvasApi = require('../Canvas/CanvasApi');
 const Utils = require('../Util');
 const InputController = require('../Engine/InputController');
 
@@ -42,6 +43,16 @@ module.exports = class Camera {
                 this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationY(-this.m_RotationSpeed * delta));
             }
         }
+    }
+
+    /**
+     * 
+     * @param {Vec3} point 
+     */
+    PointToWorldCoord(point) {
+        let p = point.multiplyMat4(this.projectionViewMatrix);
+        p.x = (p.x / 2 + 0.5) * CanvasApi.s_Context.Width;
+        p.y = (-p.y / 2 + 0.5) * CanvasApi.s_Context.Height;
     }
 
     get unProject() { return new Mat4(Utils.invertMatrix(this.projection.elements)); }
