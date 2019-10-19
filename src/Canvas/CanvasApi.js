@@ -1,7 +1,7 @@
 const CanvasContext = require('./CanvasContext');
 const { Vec2, Vec3, Vec4, Mat3, Mat4 } = require('../Mat');
 const { Shader, VertexArray, Window, Camera } = require('../Renderer');
-const {BufferType, DrawMode} = require('../Constants');
+const { BufferType, DrawMode } = require('../Constants');
 
 var angleX = 0;
 var angleY = 0;
@@ -97,25 +97,41 @@ module.exports = class CanvasApi {
      */
     static DrawCircleSimetry(context, center, x, y, color) {
         const window = context.GetLocation(2);
+        let transformation = context.GetLocation(1);
+        if (!transformation) transformation = Mat4.Identity();
 
-        this.DrawPixel(context, { x: center.x + x, y: center.y + y }, color);
-        this.DrawPixel(context, { x: center.x - x, y: center.y + y }, color);
-        this.DrawPixel(context, { x: center.x + x, y: center.y - y }, color);
-        this.DrawPixel(context, { x: center.x - x, y: center.y - y }, color);
-        this.DrawPixel(context, { x: center.x + y, y: center.y + x }, color);
-        this.DrawPixel(context, { x: center.x - y, y: center.y + x }, color);
-        this.DrawPixel(context, { x: center.x + y, y: center.y - x }, color);
-        this.DrawPixel(context, { x: center.x - y, y: center.y - x }, color);
+        this.DrawPixel(context, new Vec3(center.x + x, center.y + y, 0).multiplyMat4(transformation), color);
+        this.DrawPixel(context, new Vec3(center.x - x, center.y + y, 0).multiplyMat4(transformation), color);
+        this.DrawPixel(context, new Vec3(center.x + x, center.y - y, 0).multiplyMat4(transformation), color);
+        this.DrawPixel(context, new Vec3(center.x - x, center.y - y, 0).multiplyMat4(transformation), color);
+        this.DrawPixel(context, new Vec3(center.x + y, center.y + x, 0).multiplyMat4(transformation), color);
+        this.DrawPixel(context, new Vec3(center.x - y, center.y + x, 0).multiplyMat4(transformation), color);
+        this.DrawPixel(context, new Vec3(center.x + y, center.y - x, 0).multiplyMat4(transformation), color);
+        this.DrawPixel(context, new Vec3(center.x - y, center.y - x, 0).multiplyMat4(transformation), color);
     }
 
     /**
      * 
      * @param {CanvasContext} context 
-     * @param {Vec2} center 
+     * @param {Vec3} center 
+     * @param {Vec3} normal 
      * @param {number} radius 
      * @param {Vec3} color 
      */
-    static DrawCircle(context, center, radius, color) {
+    static DrawCircle(context, center, normal, radius, color) {
+        // let step = Math.log2(radius*radius + 1) * Math.PI / (radius * radius);
+        // normal = normal.multiplyMat4(Mat4.RotationX(70, 0, 0, 0)).Normalize();
+
+        // let circleVec = normal.Perpendicular().Normalize();
+
+        // for (let i = Math.PI; i <= 2 * Math.PI; i += step) {
+        //     let point = Vec3.Mult(circleVec, radius * Math.cos(i)).Add(Vec3.Mult(normal.Cross(circleVec), radius * Math.sin(i)));
+        //     this.DrawPixel(context, Vec3.Add(center, point), color);
+        //     this.DrawPixel(context, Vec3.Sub(center, point), color);
+        // }
+
+        // return;
+
         let x = 0;
         let y = radius;
         let d = 3 - 2 * radius;
@@ -359,8 +375,8 @@ module.exports = class CanvasApi {
         const transformation = context.GetLocation(1);
 
         for (let circle of circles) {
-            v1 = new Vec3((vertexBuffer[circle * n + offset]), (vertexBuffer[circle * n + 1 + offset]), vertexBuffer[circle * n + 2]);
-            let radius = v1.z;
+            v1 = new Vec3((vertexBuffer[circle * n + offset]), (vertexBuffer[circle * n + 1 + offset]), vertexBuffer[circle * n + 2 + offset]);
+            let radius = vertexBuffer[circle * n + 3 + offset];
             if (transformation) v1 = v1.multiplyMat4(transformation);
 
             v1 = v1.multiplyMat4(camera.m_Transformation.multiplyMat4(camera.view));
@@ -368,7 +384,7 @@ module.exports = class CanvasApi {
             v1.x = (v1.x / 2 + 0.5) * context.Width;
             v1.y = (-v1.y / 2 + 0.5) * context.Height;
 
-            this.DrawCircle(context, new Vec2(v1.x, v1.y), radius, { x: 0, y: 0, z: 0, w: 1.0 });
+            this.DrawCircle(context, new Vec2(v1.x, v1.y), new Vec3(0, 0, 1), radius, { x: 0, y: 0, z: 0, w: 1.0 });
 
         }
 

@@ -114,7 +114,7 @@ TestObject.GetComponent(MeshRenderer).m_Mesh.Index = [
   10, 11
 ]
 
-TestObject.Transform.Scale(1, 1, 1, 1/4);
+TestObject.Transform.Scale(1, 1, 1, 1 / 4);
 
 let camera = new Camera();
 let projection = Mat4.Ortho();
@@ -297,7 +297,7 @@ var frame = function (now) {
 
   //update();
   CanvasContext.RawContext.clearRect(0, 0, CanvasContext.Width, CanvasContext.Height);
-  Canvas.CanvasApi.DrawCircle(CanvasContext, { x: CanvasContext.Width / 2, y: CanvasContext.Height / 2 }, 2, { x: 0, y: 0, z: 0, w: 1.0 })
+  Canvas.CanvasApi.DrawCircle(CanvasContext, { x: CanvasContext.Width / 2, y: CanvasContext.Height / 2 }, new Vec3(0, 0, 1), 2, { x: 0, y: 0, z: 0, w: 1.0 })
   render();
   requestAnimationFrame(frame, CanvasContext.RawContext);
 };
@@ -333,6 +333,7 @@ c.onmouseup = (e) => {
       gameObjects.push(g);
       select.AddOption('Linha', g);
     } else if (selectedOption == 2) {
+      if (gameObjects.indexOf(circlePreview) != -1) gameObjects.splice(gameObjects.indexOf(circlePreview), 1);
       let g = new Circle(new Vec3(initial.x, initial.y, Math.floor(Math.sqrt(Math.pow(end.x - initial.x, 2) + Math.pow(end.y - initial.y, 2)))));
       g.m_VertexBuffer = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
       g.m_IndexBuffer = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
@@ -434,8 +435,7 @@ c.onmousemove = (e) => {
       endX = e.offsetX - CanvasContext.Width / 2;
       endY = -(e.offsetY - CanvasContext.Height / 2);
 
-      circlePreview.m_Vertex = [initial.x, initial.y, Math.floor(Math.sqrt(Math.pow(endX - initial.x, 2) + Math.pow(endY - initial.y, 2)))]
-      console.log(circlePreview);
+      circlePreview.m_Vertex = [initial.x, initial.y, 0, Math.floor(Math.sqrt(Math.pow(endX - initial.x, 2) + Math.pow(endY - initial.y, 2)))]
       gameObjects.push(circlePreview);
     }
   }

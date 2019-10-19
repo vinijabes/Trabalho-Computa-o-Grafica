@@ -120,8 +120,22 @@ class Vec3 {
         return this.x * v3.x + this.y * v3.y + this.z * v3.z;
     }
 
+    /**
+     * @param {Vec3} v3
+     */
+    Cross(v3){
+        return new Vec3(this.y*v3.z - this.z*v3.y, this.z*v3.x - this.x*v3.z, this.x*v3.y - this.y*v3.x);
+    }
+
     Norm() {
         return Math.sqrt(this.Dot(this));
+    }
+
+    Perpendicular() {
+        if (this.x != 0) return new Vec3(-(this.z + this.y) / this.x, 1, 1);
+        if (this.y != 0) return new Vec3(1, -(this.z + this.x)/this.y, 1);
+        if (this.z != 0) return new Vec3(1, 1, -(this.x + this.y) / this.z);
+        return new Vec3(1, 1, 1);
     }
 
     Clone() {
