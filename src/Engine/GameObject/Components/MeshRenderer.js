@@ -41,7 +41,7 @@ module.exports = class MeshRenderer extends MonoBehavior {
         else
             CanvasApi.SetLocation(CanvasApi.s_Context, 1, this.GameObject.Transform.m_Transform);
 
-        CanvasApi.AvaDrawElements(CanvasApi.s_Context, DrawMode.AVA_LINES, 3);
+        CanvasApi.AvaDrawElements(CanvasApi.s_Context, DrawMode.AVA_TRIANGLES, 7);
     }
 
     /**@type {Mesh} */

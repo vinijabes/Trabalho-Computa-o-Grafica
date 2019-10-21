@@ -2,6 +2,7 @@ const CanvasContext = require('./CanvasContext');
 const { Vec2, Vec3, Vec4, Mat3, Mat4 } = require('../Mat');
 const { Shader, VertexArray, Window, Camera } = require('../Renderer');
 const { BufferType, DrawMode } = require('../Constants');
+const Plane = require('../Engine/GameObject/Classes/Plane');
 
 var angleX = 0;
 var angleY = 0;
@@ -41,11 +42,14 @@ module.exports = class CanvasApi {
     /** @type {CanvasContext} */
     static s_Context
 
+    static s_zBuffer = [];
+
     /**
      * 
      * @param {CanvasContext} context 
      */
     static SwapBuffer(context) {
+        this.s_zBuffer = this.s_zBuffer.fill(-Infinity);
         context.RawContext.putImageData(context.RendererBuffer, 0, 0);
         context.RendererBuffer = context.RawContext.createImageData(context.Width, context.Height);
     }
@@ -55,13 +59,19 @@ module.exports = class CanvasApi {
      * @param {CanvasContext} context 
      */
     static DrawPixel(context, position, color) {
-        if (position.x > context.Width || position.x < 0 || position.y > context.Height || position.y < 0) return;;
-        const d = context.RendererBuffer.data;
+        if (position.x > context.Width || position.x < 0 || position.y > context.Height || position.y < 0) return;
+        let i = (Math.round(position.y) * Math.floor(context.Width) + Math.round(position.x));
+        if (position.z <= this.s_zBuffer[i]) {
+            return;
+        }
+        else this.s_zBuffer[i] = position.z;
 
-        d[(Math.round(position.y) * Math.floor(context.Width) + Math.round(position.x)) * 4] = color.x * 255;
-        d[(Math.round(position.y) * Math.floor(context.Width) + Math.round(position.x)) * 4 + 1] = color.y * 255;
-        d[(Math.round(position.y) * Math.floor(context.Width) + Math.round(position.x)) * 4 + 2] = color.z * 255;
-        d[(Math.round(position.y) * Math.floor(context.Width) + Math.round(position.x)) * 4 + 3] = color.w * 255;
+        const d = context.RendererBuffer.data;
+        i *= 4;
+        d[i] = color.x * 255;
+        d[i + 1] = color.y * 255;
+        d[i + 2] = color.z * 255;
+        d[i + 3] = color.w * 255;
     }
 
     /**
@@ -75,16 +85,11 @@ module.exports = class CanvasApi {
     static DrawLine(context, v1, v2, color, size = 1) {
         const dx = v2.x - v1.x;
         const dy = v2.y - v1.y;
-
         if (Math.abs(dx) > Math.abs(dy)) {
-            for (let i = 0; i < size; i++) {
-                this._DrawHorizontalLine(context, { x: v1.x, y: v1.y + i }, { x: v2.x, y: v2.y + i }, color);
-            }
+            this._DrawHorizontalLine(context, { x: v1.x, y: v1.y, z: v1.z }, { x: v2.x, y: v2.y, z: v2.z }, color);
         }
         else {
-            for (let i = 0; i < size; i++) {
-                this._DrawVerticalLine(context, { x: v1.x + i, y: v1.y }, { x: v2.x + i, y: v2.y }, color);
-            }
+            this._DrawVerticalLine(context, { x: v1.x, y: v1.y, z: v1.z }, { x: v2.x, y: v2.y, z: v2.z }, color);
         }
     }
 
@@ -164,25 +169,19 @@ module.exports = class CanvasApi {
         let x = origin.x;
         let y = origin.y;
 
-        const dX = Math.abs(dest.x - origin.x);
-        const dY = Math.abs(dest.y - origin.y);
+        let dX = dest.x - origin.x;
+        const dY = dest.y - origin.y;
+        let signalX = Math.sign(dX);
+        dX = Math.abs(dX);
 
-        let signalX = Math.sign(dest.x - origin.x);
-        let signalY = Math.sign(dest.y - origin.y);
-
-        if (signalX < 0) x -= 1;
-        if (signalY < 0) y -= 1;
-
-        var err = 2 * dY - dX;
-
-        for (let i = 0; i < dY; i++) {
-            this.DrawPixel(context, { x, y }, color);
-            while (err >= 0) {
+        var err = 2 * dX - dY;
+        for (let i = y; i < dest.y; i++) {
+            this.DrawPixel(context, { x, y: i, z: Math.round(origin.z) }, color);
+            if (err > 0) {
                 x += signalX;
                 err = err - 2 * dY;
             }
 
-            y += signalY;
             err = err + 2 * dX;
         }
     }
@@ -199,31 +198,190 @@ module.exports = class CanvasApi {
 
         let x = origin.x;
         let y = origin.y;
+        let z = origin.z;
 
-        const dX = Math.abs(dest.x - origin.x);
-        const dY = Math.abs(dest.y - origin.y);
-
-        let signalX = Math.sign(dest.x - origin.x);
-        let signalY = Math.sign(dest.y - origin.y);
+        const dX = dest.x - origin.x;
+        let dY = dest.y - origin.y;
+        let dZ = dest.z - origin.z;
+        let signalY = Math.sign(dY);
+        dY = Math.abs(dY);
 
         var err = 2 * dY - dX;
 
-        if (signalX < 0) x -= 1;
-        if (signalY < 0) y -= 1;
+        let dZStep = (dX != 0) ? dZ / dX : 0;
 
-        for (let i = 0; i < dX; i++) {
-            this.DrawPixel(context, { x, y }, color);
-            while (err >= 0) {
+        for (let i = x; i < dest.x; i++) {
+            this.DrawPixel(context, { x: i, y, z: Math.round(z) }, color);
+            if (err > 0) {
                 y += signalY;
                 err = err - 2 * dX;
             }
-
-            x += signalX;
             err = err + 2 * dY;
+            z += dZStep;
         }
     }
 
-    static DrawTriangle(context, v1, v2, v3) {
+    /**
+     * 
+     * @param {CanvasContext} context 
+     * @param {number} n 
+     * @param {number} offset 
+     */
+    static _DrawTriangle(context, n, offset) {
+        /**@type {Array} */
+        const vertexBuffer = context.m_Buffers[context.m_BindedBuffers[BufferType.AVA_ARRAY_BUFFER]];
+        /**@type {Array} */
+        const indexBuffer = context.m_Buffers[context.m_BindedBuffers[BufferType.AVA_ELEMENT_ARRAY_BUFFER]];
+        /**@type {VertexArray} */
+        const vertexArray = context.m_VertexArray;
+
+        /**@type {Vec3} */
+        let v1, v2, v3;
+        let color;
+
+        let vertexBufferSize = vertexBuffer.length;
+        let indexBufferSize = indexBuffer.length;
+
+        let triangles = [];
+        for (let i = 3; i <= indexBufferSize; i += 3) triangles.push(indexBuffer.slice(i - 3, i));
+
+        const camera = context.GetLocation(0);
+        const transformation = context.GetLocation(1);
+        const window = context.GetLocation(2);
+
+        for (let triangle of triangles) {
+            v1 = new Vec3((vertexBuffer[triangle[0] * n + offset]), (vertexBuffer[triangle[0] * n + 1 + offset]), vertexBuffer[triangle[0] * n + 2 + offset]);
+            v2 = new Vec3((vertexBuffer[triangle[1] * n + offset]), (vertexBuffer[triangle[1] * n + 1 + offset]), vertexBuffer[triangle[1] * n + 2 + offset]);
+            v3 = new Vec3((vertexBuffer[triangle[2] * n + offset]), (vertexBuffer[triangle[2] * n + 1 + offset]), vertexBuffer[triangle[2] * n + 2 + offset]);
+            color = new Vec4((vertexBuffer[triangle[0] * n + 3 + offset]), (vertexBuffer[triangle[0] * n + 4 + offset]), vertexBuffer[triangle[0] * n + 5 + offset], vertexBuffer[triangle[0] * n + 6 + offset]);
+
+            if (transformation) {
+                v1 = v1.multiplyMat4(transformation);
+                v2 = v2.multiplyMat4(transformation);
+                v3 = v3.multiplyMat4(transformation);
+            }
+
+            v1 = v1.multiplyMat4(camera.m_Transformation.multiplyMat4(camera.projectionViewMatrix));
+            v2 = v2.multiplyMat4(camera.m_Transformation.multiplyMat4(camera.projectionViewMatrix));
+            v3 = v3.multiplyMat4(camera.m_Transformation.multiplyMat4(camera.projectionViewMatrix));
+
+            if (!window.Clip(v1, v2) && !window.Clip(v2, v3) && !window.Clip(v3, v1)) continue;
+
+            v1.x = (v1.x / 2 + 0.5) * context.Width;
+            v1.y = (-v1.y / 2 + 0.5) * context.Height;
+
+            v2.x = (v2.x / 2 + 0.5) * context.Width;
+            v2.y = (-v2.y / 2 + 0.5) * context.Height;
+
+            v3.x = (v3.x / 2 + 0.5) * context.Width;
+            v3.y = (-v3.y / 2 + 0.5) * context.Height;
+
+            this.DrawTriangle(context, v1, v2, v3, color);
+        }
+    }
+
+    /**
+     * 
+     * @param {CanvasContext} context 
+     * @param {Vec3} v1 
+     * @param {*} v2 
+     * @param {*} v3 
+     * @param {*} color 
+     */
+    static DrawTriangle(context, v1, v2, v3, color) {
+        const plane = new Plane();
+        plane.Set3Points(v1, v2, v3);
+        if (v1.y == v2.y && v1.y == v3.y) return;
+        let A, B, C;
+        if (v1.y >= v2.y && v1.y >= v3.y) {
+            C = v1;
+            if (v2.y > v3.y) {
+                B = v2;
+                A = v3;
+            } else {
+                B = v3;
+                A = v2;
+            }
+        } else if (v2.y >= v1.y && v2.y >= v3.y) {
+            C = v2;
+            if (v1.y > v3.y) {
+                B = v1;
+                A = v3;
+            } else {
+                B = v3;
+                A = v1;
+            }
+        } else {
+            C = v3;
+            if (v1.y > v2.y) {
+                B = v1;
+                A = v2;
+            } else {
+                B = v2;
+                A = v1;
+            }
+        }
+
+        if (B.y == C.y) {
+            this._FillBottomFlatTriangle(context, A, B, C, color);
+        } else if (A.y == B.y) {
+            this._FillTopFlatTriangle(context, A, B, C, color);
+        } else {
+            let plane = new Plane();
+            plane.Set3Points(A, B, C);
+            let x = (A.x + (B.y - A.y) / (C.y - A.y) * (C.x - A.x));
+            let y = B.y;
+            let z = plane.m_Normal.z != 0 ? (-plane.m_Distance - plane.m_Normal.x * x - plane.m_Normal.y * y) / plane.m_Normal.z : B.z;
+            let D = new Vec3(x, y, z);
+            this._DrawHorizontalLine(context, B, D, color);
+            this._FillBottomFlatTriangle(context, A, B, D, color);
+            this._FillTopFlatTriangle(context, B, D, C, color);
+        }
+    }
+
+    static _FillBottomFlatTriangle(context, v1, v2, v3, color) {
+        let plane = new Plane();
+        plane.Set3Points(v1, v2, v3);
+
+        let invslope1 = (v2.y - v1.y > 0) ? (v2.x - v1.x) / (v2.y - v1.y) : 0;
+        let invslope2 = (v3.y - v1.y > 0) ? (v3.x - v1.x) / (v3.y - v1.y) : 0;
+        let dZ1 = plane.m_Normal.z != 0 ? -(plane.m_Normal.x * invslope1 + plane.m_Normal.y) / plane.m_Normal.z : 0;
+        let dZ2 = plane.m_Normal.z != 0 ? -(plane.m_Normal.x * invslope2 + plane.m_Normal.y) / plane.m_Normal.z : 0;
+
+        let curx1 = v1.x;
+        let curx2 = v1.x;
+        let currz1 = v1.z;
+        let currz2 = v1.z;
+
+        for (let scanlineY = v1.y; scanlineY <= v2.y; scanlineY++) {
+            this._DrawHorizontalLine(context, { x: curx1, y: scanlineY, z: currz1 }, { x: curx2, y: scanlineY, z: currz2 }, color);
+            curx1 += invslope1;
+            curx2 += invslope2;
+            currz1 += dZ1;
+            currz2 += dZ2;
+        }
+    }
+
+    static _FillTopFlatTriangle(context, v1, v2, v3, color) {
+        let plane = new Plane();
+        plane.Set3Points(v1, v2, v3);
+
+        let invslope1 = (v3.y - v1.y > 0) ? (v3.x - v1.x) / (v3.y - v1.y) : 0;
+        let invslope2 = (v3.y - v2.y > 0) ? (v3.x - v2.x) / (v3.y - v2.y) : 0;
+        let dZ1 = plane.m_Normal.z != 0 ? -(plane.m_Normal.x * invslope1 + plane.m_Normal.y) / plane.m_Normal.z : 0;
+        let dZ2 = plane.m_Normal.z != 0 ? -(plane.m_Normal.x * invslope2 + plane.m_Normal.y) / plane.m_Normal.z : 0;
+        let curx1 = v3.x;
+        let curx2 = v3.x;
+        let currz1 = v3.z;
+        let currz2 = v3.z;
+
+        for (let scanlineY = v3.y; scanlineY > v1.y; scanlineY--) {
+            this._DrawHorizontalLine(context, { x: curx1, y: scanlineY, z: currz1 }, { x: curx2, y: scanlineY, z: currz2 }, color);
+            curx1 -= invslope1;
+            curx2 -= invslope2;
+            currz1 -= dZ1;
+            currz2 -= dZ2;
+        }
     }
 
     /**
@@ -291,7 +449,7 @@ module.exports = class CanvasApi {
                 this._DrawLine(context, n, offset);
                 break;
             case DrawMode.AVA_TRIANGLES:
-                this._DrawTriangle(n, offset);
+                this._DrawTriangle(context, n, offset);
                 break;
             case DrawMode.AVA_CIRCLE:
                 this._DrawCircle(context, n, offset);

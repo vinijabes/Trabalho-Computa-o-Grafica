@@ -31,6 +31,7 @@ class Mat4 {
         let mat4 = new Mat4();
         mat4.elements[0][0] = 1;
         mat4.elements[1][1] = 1;
+        mat4.elements[2][2] = 1;
         mat4.elements[3][3] = 1;
         return mat4;
     }
