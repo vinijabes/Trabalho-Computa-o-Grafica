@@ -38,7 +38,7 @@ class Mat4 {
 
     static Cavaleira() {
         let mat4 = this.Identity();
-        mat4.elements[2][2] = 0;
+        mat4.elements[2][2] = 1;
         mat4.elements[2][0] = Math.cos(45 * Math.PI / 180);
         mat4.elements[2][1] = Math.sin(45 * Math.PI / 180);
         return mat4;

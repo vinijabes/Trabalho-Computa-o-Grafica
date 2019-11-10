@@ -25,7 +25,7 @@ module.exports = class Plane {
         let ac = Vec3.Sub(c, a);
 
         let normal = ab.Cross(ac);
-        let distance = (-normal.x * a.x - normal.y * a.y - normal.z * a.z)/normal.Norm();
+        let distance = normal.Norm() != 0 ? (-normal.x * a.x - normal.y * a.y - normal.z * a.z) / normal.Norm() : 0;
 
         this.m_Normal = normal.Normalize();
         this.m_Distance = distance;

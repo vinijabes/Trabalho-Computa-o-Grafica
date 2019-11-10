@@ -139,6 +139,7 @@ let TextZ = new UI.Text(null, "Z: ");
 let CasaButton = new UI.Button(null, 'Casa');
 let JanelaButton = new UI.Button(null, 'Janela + Linhas');
 let CirculosButton = new UI.Button(null, 'Círculos + Linhas');
+let PauseButton = new UI.Button(null, 'Pause');
 
 CasaButton.onClick = () => {
   let go = new GameObject("Casa");
@@ -186,7 +187,10 @@ CirculosButton.onClick = () => {
   select.Render();
 }
 
-
+let paused = false;
+PauseButton.onClick = () => {
+  paused = !paused;
+}
 
 let WindowMenu = new UI.Menu(null);
 let DrawingMenu = new UI.Menu(null);
@@ -200,6 +204,7 @@ DrawLineButton.onClick = () => { selectedOption = 1; }
 
 DrawingMenu.AddChild(DrawLineButton);
 DrawingMenu.AddChild(DrawCircleButton);
+DrawingMenu.AddChild(PauseButton);
 
 DrawingMenu.m_DomNode.style.marginTop = '8px';
 
@@ -264,23 +269,24 @@ let delta = 0;
 let last = 0;
 var frame = function (now) {
   delta += now - last;
+  if (!paused) {
+    update((now - last) / 1000);
 
-  update((now - last) / 1000);
+    last = now;
+    count++;
 
-  last = now;
-  count++;
+    if (delta > 1000) {
+      //console.clear();
+      console.log(count);
+      count = 0;
+      delta = 0;
+    }
 
-  if (delta > 1000) {
-    //console.clear();
-    console.log(count);
-    count = 0;
-    delta = 0;
+    //update();
+    CanvasContext.RawContext.clearRect(0, 0, CanvasContext.Width, CanvasContext.Height);
+    Canvas.CanvasApi.DrawCircle(CanvasContext, { x: CanvasContext.Width / 2, y: CanvasContext.Height / 2 }, new Vec3(0, 0, 1), 2, { x: 0, y: 0, z: 0, w: 1.0 })
+    render();
   }
-
-  //update();
-  CanvasContext.RawContext.clearRect(0, 0, CanvasContext.Width, CanvasContext.Height);
-  Canvas.CanvasApi.DrawCircle(CanvasContext, { x: CanvasContext.Width / 2, y: CanvasContext.Height / 2 }, new Vec3(0, 0, 1), 2, { x: 0, y: 0, z: 0, w: 1.0 })
-  render();
   requestAnimationFrame(frame, CanvasContext.RawContext);
 };
 

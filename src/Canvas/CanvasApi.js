@@ -3,6 +3,7 @@ const { Vec2, Vec3, Vec4, Mat3, Mat4 } = require('../Mat');
 const { Shader, VertexArray, Window, Camera } = require('../Renderer');
 const { BufferType, DrawMode } = require('../Constants');
 const Plane = require('../Engine/GameObject/Classes/Plane');
+const Triangle = require('../Engine/GameObject/Classes/Triangle');
 
 var angleX = 0;
 var angleY = 0;
@@ -248,7 +249,7 @@ module.exports = class CanvasApi {
         const camera = context.GetLocation(0);
         const transformation = context.GetLocation(1);
         const window = context.GetLocation(2);
-
+        let test = [];
         for (let triangle of triangles) {
             v1 = new Vec3((vertexBuffer[triangle[0] * n + offset]), (vertexBuffer[triangle[0] * n + 1 + offset]), vertexBuffer[triangle[0] * n + 2 + offset]);
             v2 = new Vec3((vertexBuffer[triangle[1] * n + offset]), (vertexBuffer[triangle[1] * n + 1 + offset]), vertexBuffer[triangle[1] * n + 2 + offset]);
@@ -275,9 +276,55 @@ module.exports = class CanvasApi {
 
             v3.x = (v3.x / 2 + 0.5) * context.Width;
             v3.y = (-v3.y / 2 + 0.5) * context.Height;
-
-            this.DrawTriangle(context, v1, v2, v3, color);
+            test.push(new Triangle(v1, v2, v3, color));
+            //this.DrawTriangle(context, v1, v2, v3, color);
         }
+        test = this._ProcessTriangles(test);
+
+        for (let t of test) {
+            this.DrawTriangle(context, t.a, t.b, t.c, t.color);
+        }
+    }
+
+    /**
+     * 
+     * @param {Array<Triangle>} triangles 
+     */
+    static _ProcessTriangles(triangles) {
+        let rendering = triangles.slice();
+        for (let i = 0; i < rendering.length - 1; i++) {
+            for (let j = i + 1; j < rendering.length; j++) {
+                let plane = new Plane();
+                plane.Set3Points(rendering[i].a, rendering[i].b, rendering[i].c);
+
+                if (plane.m_Normal.Norm() == 0) {
+                    rendering.splice(i--, 1);
+                    break;
+                }
+
+                let distA = plane.DistanceToPoint(rendering[j].a);
+                let distB = plane.DistanceToPoint(rendering[j].b);
+                let distC = plane.DistanceToPoint(rendering[j].c);
+
+                if (Math.sign(Math.max(distA, distB, distC)) != Math.sign(Math.min(distA, distB, distC))) {
+                } else if((distA < 0.00000001) + (distB < 0.00000001) + (distC < 0.00000001) < 2){
+                    let iMaxZ = Math.max(rendering[i].a.z, rendering[i].b.z, rendering[i].c.z);
+                    let jMaxZ = Math.max(rendering[j].a.z, rendering[j].b.z, rendering[j].c.z);
+                    if (iMaxZ < jMaxZ) {
+                        if(rendering[j].Inside(rendering[i].a) && rendering[j].Inside(rendering[i].b) && rendering[j].Inside(rendering[i].c)){
+                            rendering[i].color = new Vec4(0, 0, 0, 1);
+                            break;
+                        }
+                    } else if (iMaxZ >= jMaxZ) {
+                        if(rendering[i].Inside(rendering[j].a) && rendering[i].Inside(rendering[j].b) && rendering[i].Inside(rendering[j].c)){
+                            rendering.splice(j--, 1);                            
+                        }
+                    }
+                }
+            }
+        }
+
+        return rendering;
     }
 
     /**
@@ -286,9 +333,11 @@ module.exports = class CanvasApi {
      * @param {Vec3} v1 
      * @param {*} v2 
      * @param {*} v3 
-     * @param {*} color 
+     * @param {*} color1 
+     * @param {*} color2 
+     * @param {*} color3 
      */
-    static DrawTriangle(context, v1, v2, v3, color) {
+    static DrawTriangle(context, v1, v2, v3, color1, color2, color3) {
         const plane = new Plane();
         plane.Set3Points(v1, v2, v3);
         if (v1.y == v2.y && v1.y == v3.y) return;
@@ -323,9 +372,9 @@ module.exports = class CanvasApi {
         }
 
         if (B.y == C.y) {
-            this._FillBottomFlatTriangle(context, A, B, C, color);
+            this._FillBottomFlatTriangle(context, A, B, C, color1, color2, color3);
         } else if (A.y == B.y) {
-            this._FillTopFlatTriangle(context, A, B, C, color);
+            this._FillTopFlatTriangle(context, A, B, C, color1, color2, color3);
         } else {
             let plane = new Plane();
             plane.Set3Points(A, B, C);
@@ -333,9 +382,9 @@ module.exports = class CanvasApi {
             let y = B.y;
             let z = plane.m_Normal.z != 0 ? (-plane.m_Distance - plane.m_Normal.x * x - plane.m_Normal.y * y) / plane.m_Normal.z : B.z;
             let D = new Vec3(x, y, z);
-            this._DrawHorizontalLine(context, B, D, color);
-            this._FillBottomFlatTriangle(context, A, B, D, color);
-            this._FillTopFlatTriangle(context, B, D, C, color);
+            this._DrawHorizontalLine(context, B, D, color1);
+            this._FillBottomFlatTriangle(context, A, B, D, color1, color2, color3);
+            this._FillTopFlatTriangle(context, B, D, C, color1, color2, color3);
         }
     }
 
