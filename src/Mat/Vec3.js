@@ -95,6 +95,7 @@ class Vec3 {
     /**
      * 
      * @param {number} a
+     * @returns {Vec3}
      */
     Mult(a) {
         this.x *= a;
@@ -138,6 +139,9 @@ class Vec3 {
         return new Vec3(1, 1, 1);
     }
 
+    /**
+     * @return {Vec3}
+     */
     Clone() {
         return Object.assign(Object.create(Object.getPrototypeOf(this)), this);
     }

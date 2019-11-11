@@ -259,6 +259,7 @@ var update = (delta) => {
 var render = () => {
   for (let g of gameObjects) g.Render(CanvasContext);
   RendererSystem.Flush();
+  //Canvas.CanvasApi.Clear(new Vec4(0, 0, 0, 1));
   Canvas.CanvasApi.SwapBuffer(CanvasContext);
   let bitmap = offscreen.transferToImageBitmap();
   context.transferFromImageBitmap(bitmap);

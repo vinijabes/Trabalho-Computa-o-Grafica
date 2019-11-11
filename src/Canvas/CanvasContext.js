@@ -1,6 +1,7 @@
-const {Vec2, Vec3, Vec4} = require('../Mat');
-const {BufferType, DrawMode} = require('../Constants');
+const { Vec2, Vec3, Vec4 } = require('../Mat');
+const { BufferType, DrawMode } = require('../Constants');
 const VertexArray = require('../Renderer/VertexArray');
+const Shader = require('../Renderer/Shader');
 const API = require('./CanvasApi');
 
 module.exports = class CanvasContext {
@@ -11,8 +12,8 @@ module.exports = class CanvasContext {
     m_BindedBuffers = Array(Object.keys(BufferType).length);
 
     /**@type {VertexArray} */
-    m_VertexArray = [];   
-    
+    m_VertexArray = [];
+
     /**@type {Array.<any>}*/
     m_Locations = [];
 
@@ -23,6 +24,38 @@ module.exports = class CanvasContext {
     constructor(context) {
         this.m_Context = context;
         this.RendererBuffer = context.createImageData(this.Width, this.Height);
+
+        this.Shader = new Shader();
+        this.Shader.UploadData('ambientColor', new Vec3(0.1, 0.09, 0.0));
+        this.Shader.UploadData('specularColor', new Vec3(1.0, 1.0, 1.0));
+        this.Shader.UploadData('Ka', 1.0);
+        this.Shader.UploadData('Kd', 0.9);
+        this.Shader.UploadData('Ks', 0.4);
+        this.Shader.UploadData('n', 5);
+        this.Shader.Compile((ava, location) => {
+            let N = location.normal;
+            let L = Vec3.Sub(location.lightPos, ava.position).Normalize();
+            let R = (N.Clone().Mult(2 * N.Dot(L))).Sub(L);
+            let S = Vec3.Sub(location.observatorPos, ava.position).Normalize();
+
+            let cosTeta = Math.abs((N.Dot(L)) / (N.Norm() * L.Norm()));
+            let cosAlpha = Math.abs((R.Dot(S)) / (R.Norm() * S.Norm()));
+
+            let d = Vec3.Sub(location.lightPos, ava.position).Norm()/70;
+            //console.log(d);
+            let k = 0.1;
+            ava.color = new Vec4(
+                Vec3.Add(
+                    location.ambientColor.Mult(location.Ka),
+                    ava.color.Mult(location.Kd * cosTeta))
+                , 1.0);
+
+            // ava.color = new Vec4(
+            //     Vec3.Add(
+            //         location.ambientColor.Mult(location.Ka),
+            //         ava.color.Mult((location.Kd * cosTeta + location.Ks * cosAlpha * cosAlpha)/(k + d)))
+            //     , 1.0);
+        });
     }
 
     /**
@@ -72,7 +105,7 @@ module.exports = class CanvasContext {
      * 
      * @param {VertexArray} vertexArray 
      */
-    AvaBindVertexArray(vertexArray){
+    AvaBindVertexArray(vertexArray) {
         this.m_VertexArray = vertexArray;
     }
 
@@ -98,7 +131,7 @@ module.exports = class CanvasContext {
      * @param {number} n 
      * @param {number} offset      
      */
-    _DrawLine(n, offset){
+    _DrawLine(n, offset) {
         /**@type {Array} */
         const vertexBuffer = this.m_Buffers[this.m_BindedBuffers[BufferType.AVA_ARRAY_BUFFER]];
         /**@type {Array} */
@@ -111,12 +144,12 @@ module.exports = class CanvasContext {
         let indexBufferSize = indexBuffer.length;
 
         let lines = [];
-        for(let i = 2; i <= indexBufferSize; i+= 2) lines.push(indexBuffer.slice(i - 2, i));
+        for (let i = 2; i <= indexBufferSize; i += 2) lines.push(indexBuffer.slice(i - 2, i));
 
-        for(let line of lines){
-            v1 = new Vec3(vertexBuffer[line[0]*n], vertexBuffer[line[0]*n + 1], vertexBuffer[line[0]*n + 2]);
-            v2 = new Vec3(vertexBuffer[line[1]*n], vertexBuffer[line[1]*n + 1], vertexBuffer[line[1]*n + 2]);
-        
+        for (let line of lines) {
+            v1 = new Vec3(vertexBuffer[line[0] * n], vertexBuffer[line[0] * n + 1], vertexBuffer[line[0] * n + 2]);
+            v2 = new Vec3(vertexBuffer[line[1] * n], vertexBuffer[line[1] * n + 1], vertexBuffer[line[1] * n + 2]);
+
             this.DrawLine(v1, v2, { x: 1.0, y: 0, z: 0, w: 1.0 });
         }
     }
@@ -139,12 +172,12 @@ module.exports = class CanvasContext {
         let indexBufferSize = indexBuffer.length;
 
         let triangles = [];
-        for(let i = 3; i <= indexBufferSize; i+= 3) triangles.push(indexBuffer.slice(i - 3, i));
+        for (let i = 3; i <= indexBufferSize; i += 3) triangles.push(indexBuffer.slice(i - 3, i));
 
-        for(let triangle of triangles){
+        for (let triangle of triangles) {
             v1 = vertexBuffer[triangle[0]];
             v2 = vertexBuffer[triangle[1]];
-            v3 = vertexBuffer[triangle[2]];         
+            v3 = vertexBuffer[triangle[2]];
         }
     }
 
@@ -187,17 +220,17 @@ module.exports = class CanvasContext {
         let x = origin.x;
         if (dest.y < origin.y) return this._DrawVerticalLine(dest, origin, color);
 
-        if(dest.x - origin.x != 0){
+        if (dest.x - origin.x != 0) {
             const a = (dest.y - origin.y) / (dest.x - origin.x);
             const b = -a * origin.x + origin.y;
             for (let i = origin.y; i <= dest.y; i++) {
-                let x = (i - b)/a;
+                let x = (i - b) / a;
                 this.DrawPixel({ x: x, y: i }, color);
-            }        
-        }else{
+            }
+        } else {
             for (let i = origin.y; i <= dest.y; i++) {
                 this.DrawPixel({ x: origin.x, y: i }, color);
-            }        
+            }
         }
     }
 
@@ -216,13 +249,13 @@ module.exports = class CanvasContext {
 
         let y = origin.y;
         if (dest.x < origin.x) return this._DrawHorizontalLine(dest, origin, color);
-                
+
         const a = (dest.y - origin.y) / (dest.x - origin.x);
         const b = -a * origin.x + origin.y;
         for (let i = origin.x; i <= dest.x; i++) {
             let y = a * i + b;
             this.DrawPixel({ x: i, y: y }, color);
-        }        
+        }
         return;
     }
 
@@ -230,7 +263,7 @@ module.exports = class CanvasContext {
      * @param {number} location
      * @param {any} value 
      */
-    SetLocation(location, value){
+    SetLocation(location, value) {
         this.m_Locations[location] = value;
     }
 
@@ -238,11 +271,11 @@ module.exports = class CanvasContext {
      * @param {number} location
      * @returns {any}
      */
-    GetLocation(location){
+    GetLocation(location) {
         return this.m_Locations[location];
     }
 
     get RawContext() { return this.m_Context; }
     get Width() { return this.m_Context.canvas.width; }
-    get Height() { return this.m_Context.canvas.height; }  
+    get Height() { return this.m_Context.canvas.height; }
 }

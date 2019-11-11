@@ -1,17 +1,22 @@
 module.exports = class Shader {
-    Bind() {
 
+    m_Data = {};
+
+    Bind() {
     };
 
-    Unbind() {
-        
+    Unbind() {    
     }
 
-    Compile(){
-
+    Compile(script){
+        this.m_Function = typeof script == 'function' ? script : new Function('ava', 'location', script);
     }
 
-    Execute(){
-        
+    Execute(data){
+        this.m_Function(data, this.m_Data);
+    }
+
+    UploadData(name, data){
+        this.m_Data[name] = data;
     }
 }
