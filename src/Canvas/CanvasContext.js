@@ -38,7 +38,7 @@ module.exports = class CanvasContext {
         this.Shader.Compile((ava, location) => {
             let N = location.normal;
             let L = Vec3.Sub(location.lightPos, ava.position).Normalize();
-            let R = (N.Clone().Mult(2 * N.Dot(L))).Sub(L);
+            let R = (N.Clone().Mult(2 * N.Dot(Vec3.Mult(L, -1)))).Add(L);
             let S = Vec3.Sub(location.observatorPos, ava.position).Normalize();
 
             let cosTeta = Math.abs((N.Dot(L)) / (N.Norm() * L.Norm()));
