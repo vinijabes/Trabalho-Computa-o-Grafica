@@ -73,7 +73,7 @@ module.exports = class CanvasApi {
         if (position.z <= this.s_zBuffer[i]) {
             return;
         }
-        else this.s_zBuffer[i] = position.z;
+        else this.s_zBuffer[i] = Math.round(position.z);
 
         const d = context.RendererBuffer.data;
         i *= 4;
@@ -109,19 +109,23 @@ module.exports = class CanvasApi {
      * @param {number} x 
      * @param {number} y 
      */
-    static DrawCircleSimetry(context, center, x, y, color) {
-        const window = context.GetLocation(2);
-        let transformation = context.GetLocation(1);
-        if (!transformation) transformation = Mat4.Identity();
+    static DrawCircleSimetry(context, center, x, y, z, color) {
+        // const window = context.GetLocation(2);
+        // let transformation = context.GetLocation(1);
+        // if (!transformation) transformation = Mat4.Identity();
+        let transformation = Mat4.Identity();
 
-        this.DrawPixel(context, new Vec3(center.x + x, center.y + y, 0).multiplyMat4(transformation), color);
-        this.DrawPixel(context, new Vec3(center.x - x, center.y + y, 0).multiplyMat4(transformation), color);
-        this.DrawPixel(context, new Vec3(center.x + x, center.y - y, 0).multiplyMat4(transformation), color);
-        this.DrawPixel(context, new Vec3(center.x - x, center.y - y, 0).multiplyMat4(transformation), color);
-        this.DrawPixel(context, new Vec3(center.x + y, center.y + x, 0).multiplyMat4(transformation), color);
-        this.DrawPixel(context, new Vec3(center.x - y, center.y + x, 0).multiplyMat4(transformation), color);
-        this.DrawPixel(context, new Vec3(center.x + y, center.y - x, 0).multiplyMat4(transformation), color);
-        this.DrawPixel(context, new Vec3(center.x - y, center.y - x, 0).multiplyMat4(transformation), color);
+        let data = {position: new Vec3(x, y, Math.round(origin.z)), color: new Vec4(color.x, color.y, color.z, color.w)};
+        context.Shader.Execute(data);
+
+        this.DrawPixel(context, new Vec3(center.x + x, center.y + y, center.z).multiplyMat4(transformation), data.color);
+        this.DrawPixel(context, new Vec3(center.x - x, center.y + y, center.z).multiplyMat4(transformation), data.color);
+        this.DrawPixel(context, new Vec3(center.x + x, center.y - y, center.z).multiplyMat4(transformation), data.color);
+        this.DrawPixel(context, new Vec3(center.x - x, center.y - y, center.z).multiplyMat4(transformation), data.color);
+        this.DrawPixel(context, new Vec3(center.x + y, center.y + x, center.z).multiplyMat4(transformation), data.color);
+        this.DrawPixel(context, new Vec3(center.x - y, center.y + x, center.z).multiplyMat4(transformation), data.color);
+        this.DrawPixel(context, new Vec3(center.x + y, center.y - x, center.z).multiplyMat4(transformation), data.color);
+        this.DrawPixel(context, new Vec3(center.x - y, center.y - x, center.z).multiplyMat4(transformation), data.color);
     }
 
     /**
@@ -133,23 +137,10 @@ module.exports = class CanvasApi {
      * @param {Vec3} color 
      */
     static DrawCircle(context, center, normal, radius, color) {
-        // let step = Math.log2(radius*radius + 1) * Math.PI / (radius * radius);
-        // normal = normal.multiplyMat4(Mat4.RotationX(70, 0, 0, 0)).Normalize();
-
-        // let circleVec = normal.Perpendicular().Normalize();
-
-        // for (let i = Math.PI; i <= 2 * Math.PI; i += step) {
-        //     let point = Vec3.Mult(circleVec, radius * Math.cos(i)).Add(Vec3.Mult(normal.Cross(circleVec), radius * Math.sin(i)));
-        //     this.DrawPixel(context, Vec3.Add(center, point), color);
-        //     this.DrawPixel(context, Vec3.Sub(center, point), color);
-        // }
-
-        // return;
-
         let x = 0;
         let y = radius;
         let d = 3 - 2 * radius;
-        this.DrawCircleSimetry(context, center, x, y, color);
+        this.DrawCircleSimetry(context, center, x, y, 0, color);
 
         while (y >= x) {
             x++;
@@ -161,7 +152,99 @@ module.exports = class CanvasApi {
                 d = d + 4 * x + 6;
             }
 
-            this.DrawCircleSimetry(context, center, x, y, color);
+            this.DrawCircleSimetry(context, center, x, y, 0, color);
+        }
+    }
+
+
+    /**
+     * 
+     * @param {CanvasContext} context 
+     * @param {Vec2} center 
+     * @param {number} x 
+     * @param {number} y 
+     */
+    static DrawSphereSimetry(context, sphereCenter, center, x, y, z, color) {
+        // const window = context.GetLocation(2);
+        // let transformation = context.GetLocation(1);
+        // if (!transformation) transformation = Mat4.Identity();
+        let transformation = Mat4.Identity();
+
+        let data = {position: new Vec3(center.x + x, center.y + y, center.z), color: new Vec4(color.x, color.y, color.z, color.w)};
+        context.Shader.UploadData('normal', Vec3.Sub(data.position, sphereCenter).Normalize());
+        context.Shader.Execute(data);
+        this.DrawPixel(context, data.position.multiplyMat4(transformation), data.color);
+        
+        data = {position: new Vec3(center.x - x, center.y + y, center.z), color: new Vec4(color.x, color.y, color.z, color.w)};
+        context.Shader.UploadData('normal', Vec3.Sub(data.position, sphereCenter).Normalize());
+        context.Shader.Execute(data);
+        this.DrawPixel(context, data.position.multiplyMat4(transformation), data.color);
+
+        data = {position: new Vec3(center.x + x, center.y - y, center.z), color: new Vec4(color.x, color.y, color.z, color.w)};
+        context.Shader.UploadData('normal', Vec3.Sub(data.position, sphereCenter).Normalize());
+        context.Shader.Execute(data);
+        this.DrawPixel(context, data.position.multiplyMat4(transformation), data.color);
+
+        data = {position: new Vec3(center.x - x, center.y - y, center.z), color: new Vec4(color.x, color.y, color.z, color.w)};
+        context.Shader.UploadData('normal', Vec3.Sub(data.position, sphereCenter).Normalize());
+        context.Shader.Execute(data);
+        this.DrawPixel(context, data.position.multiplyMat4(transformation), data.color);
+
+        data = {position: new Vec3(center.x + y, center.y + x, center.z), color: new Vec4(color.x, color.y, color.z, color.w)};
+        context.Shader.UploadData('normal', Vec3.Sub(data.position, sphereCenter).Normalize());
+        context.Shader.Execute(data);
+        this.DrawPixel(context, data.position.multiplyMat4(transformation), data.color);
+
+        data = {position: new Vec3(center.x - y, center.y + x, center.z), color: new Vec4(color.x, color.y, color.z, color.w)};
+        context.Shader.UploadData('normal', Vec3.Sub(data.position, sphereCenter).Normalize());
+        context.Shader.Execute(data);
+        this.DrawPixel(context, data.position.multiplyMat4(transformation), data.color);
+
+        data = {position: new Vec3(center.x + y, center.y - x, center.z), color: new Vec4(color.x, color.y, color.z, color.w)};
+        context.Shader.UploadData('normal', Vec3.Sub(data.position, sphereCenter).Normalize());
+        context.Shader.Execute(data);
+        this.DrawPixel(context, data.position.multiplyMat4(transformation), data.color);
+
+        data = {position: new Vec3(center.x - y, center.y - x, center.z), color: new Vec4(color.x, color.y, color.z, color.w)};
+        context.Shader.UploadData('normal', Vec3.Sub(data.position, sphereCenter).Normalize());
+        context.Shader.Execute(data);
+        this.DrawPixel(context, data.position.multiplyMat4(transformation), data.color);
+    }
+
+    /**
+     * 
+     * @param {CanvasContext} context 
+     * @param {Vec3} center 
+     * @param {Vec3} normal 
+     * @param {number} radius 
+     * @param {Vec3} color 
+     */
+    static DrawSphere(context, center, normal, radius, color) {
+        
+        for(let i = 0; i < radius; i++){
+            let x = 0;
+            let y = i;
+            let d = 3 - 2 * i;
+            this.DrawSphereSimetry(context, center, new Vec3(center.x, center.y, center.z + i), x, y, 0, color);
+            this.DrawSphereSimetry(context, center, new Vec3(center.x, center.y, center.z - i), x, y, 0, color);
+            this.DrawSphereSimetry(context, center, new Vec3(center.x + 1, center.y, center.z + i), x, y, 0, color);
+            this.DrawSphereSimetry(context, center, new Vec3(center.x + 1, center.y, center.z - i), x, y, 0, color);
+
+            while (y >= x) {
+                x++;
+
+                if (d > 0) {
+                    y--;
+                    d = d + 4 * (x - y) + 10;
+                } else {
+                    d = d + 4 * x + 6;
+                }
+
+                this.DrawSphereSimetry(context, center, new Vec3(center.x, center.y, center.z + i), x, y, 0, color);
+                this.DrawSphereSimetry(context, center, new Vec3(center.x, center.y, center.z - i), x, y, 0, color);
+                this.DrawSphereSimetry(context, center, new Vec3(center.x + 1, center.y, center.z + i), x, y, 0, color);
+                this.DrawSphereSimetry(context, center, new Vec3(center.x + 1, center.y, center.z - i), x, y, 0, color);
+            }
         }
     }
 
@@ -363,6 +446,7 @@ module.exports = class CanvasApi {
     static DrawTriangle(context, v1, v2, v3, color1, color2, color3) {
         const plane = new Plane();
         plane.Set3Points(v1, v2, v3);
+        
         if (v1.y == v2.y && v1.y == v3.y) return;
         let A, B, C;
         if (v1.y >= v2.y && v1.y >= v3.y) {
@@ -526,6 +610,9 @@ module.exports = class CanvasApi {
             case DrawMode.AVA_CIRCLE:
                 this._DrawCircle(context, n, offset);
                 break;
+            case DrawMode.AVA_SPHERE:
+                this._DrawSphere(context, n, offset);
+                break;
         }
         //return context.AvaDrawElements(mode, n, offset);
     }
@@ -616,6 +703,60 @@ module.exports = class CanvasApi {
 
             this.DrawCircle(context, new Vec2(v1.x, v1.y), new Vec3(0, 0, 1), radius, { x: 0, y: 0, z: 0, w: 1.0 });
 
+        }
+
+    }
+
+    /**
+     *
+     * @param {CanvasContext} context  
+     * @param {number} n 
+     * @param {number} offset      
+     */
+    static _DrawSphere(context, n, offset) {
+        /**@type {Array} */
+        const vertexBuffer = context.m_Buffers[context.m_BindedBuffers[BufferType.AVA_ARRAY_BUFFER]];
+        /**@type {Array} */
+        const indexBuffer = context.m_Buffers[context.m_BindedBuffers[BufferType.AVA_ELEMENT_ARRAY_BUFFER]];
+        /**@type {VertexArray} */
+        const vertexArray = context.m_VertexArray;
+
+        /**@type {Vec3} */
+        let v1;
+        let indexBufferSize = indexBuffer.length;
+
+        let circles = indexBuffer.slice();
+
+        const camera = context.GetLocation(0);
+        const transformation = context.GetLocation(1);
+
+        let lightPos = new Vec3(100, 0, 100).multiplyMat4(camera.projectionViewMatrix);
+        lightPos.x = (lightPos.x / 2 + 0.5) * context.Width;
+        lightPos.y = (-lightPos.y / 2 + 0.5) * context.Height;
+
+        let observatorPos = new Vec3(0, 0, 100).multiplyMat4(camera.projectionViewMatrix);
+        observatorPos.x = (observatorPos.x / 2 + 0.5) * context.Width;
+        observatorPos.y = (-observatorPos.y / 2 + 0.5) * context.Height;
+
+        context.Shader.UploadData('lightPos', lightPos);
+        context.Shader.UploadData('observatorPos', observatorPos);
+
+        context.Shader.UploadData('Kd', 0.8);
+        context.Shader.UploadData('Ks', 0.8);
+        context.Shader.UploadData('n', 50);
+
+        for (let circle of circles) {
+            v1 = new Vec3((vertexBuffer[circle * n + offset]), (vertexBuffer[circle * n + 1 + offset]), vertexBuffer[circle * n + 2 + offset]);
+            let radius = vertexBuffer[circle * n + 3 + offset];
+            if (transformation) v1 = v1.multiplyMat4(transformation);
+
+            v1 = v1.multiplyMat4(camera.m_Transformation.multiplyMat4(camera.view));
+
+            v1.x = (v1.x / 2 + 0.5) * context.Width;
+            v1.y = (-v1.y / 2 + 0.5) * context.Height;
+            
+
+            this.DrawSphere(context, new Vec3(v1.x, v1.y, v1.z), new Vec3(0, 0, 1), radius, { x: 1, y: 0, z: 1, w: 1.0 });            
         }
 
     }

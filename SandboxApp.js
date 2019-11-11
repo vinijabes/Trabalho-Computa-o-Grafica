@@ -10,6 +10,7 @@ const UI = require('./src/UI');
 const TransformationUI = require('./src/Scripts/TransformationUI');
 const GO = require('./src/Engine/GameObject/GameObject');
 const MeshRenderer = require('./src/Engine/GameObject/Components/MeshRenderer');
+const SphereRenderer = require('./src/Engine/GameObject/Components/SphereRenderer');
 const Collider = require('./src/Engine/GameObject/Components/SphereCollider');
 const RendererSystem = require('./src/Engine/RendererSystem');
 const Time = require('./src/Engine/Time');
@@ -32,6 +33,29 @@ test.Transform.Translate({ x: 200, y: 200, z: 100 });
 
 let TestObject = new GO();
 TestObject.AddComponent(MeshRenderer);
+
+let sphere = new GO();
+sphere.AddComponent(SphereRenderer);
+sphere.GetComponent(SphereRenderer).Radius = 50;
+
+let plane = new GO();
+plane.AddComponent(MeshRenderer);
+
+const verticesPlano =
+  [
+    0, 0, 0, 0, 0, 1, 1,
+    100, 0, 0, 0, 0, 1, 1,
+    0, 100, 0, 0, 0, 1, 1,
+    100, 100, 0, 0, 0, 1, 1,
+  ]
+
+const indicesPlano = [
+  0, 1, 2,
+  1, 2, 3
+];
+
+plane.GetComponent(MeshRenderer).m_Mesh.Index = indicesPlano;
+plane.GetComponent(MeshRenderer).m_Mesh.Vertex = verticesPlano;
 
 const vertexArray = new VertexArray();
 vertexArray.AddVextexAttrib(0, VertexArray.AvaType.Vec3);
@@ -106,6 +130,7 @@ Canvas.CanvasApi.SetLocation(CanvasContext, 0, camera);
 Canvas.CanvasApi.SetLocation(CanvasContext, 2, new Window(new Vec2(-1, -1), new Vec2(2, 2)));
 
 let gameObjects = [];
+//gameObjects.push(sphere);
 
 
 let cartesian = new GameObject("Plano Cartesiano", false);
@@ -149,7 +174,7 @@ CasaButton.onClick = () => {
   go.m_Index = indicesVertices;
   gameObjects = [];
   gameObjects.push(go);
-  gameObjects.push(cartesian);
+  //gameObjects.push(cartesian);
 
   transformationUI.Show();
   WindowMenu.Hide();
@@ -169,7 +194,7 @@ JanelaButton.onClick = () => {
 
   select.m_Options = [];
   select.Render();
-  gameObjects = [cartesian];
+  //gameObjects = [cartesian];
   Canvas.CanvasApi.SetLocation(CanvasContext, 2, new Window(new Vec2(-1, -1), new Vec2(2, 2)));
   selectedOption = 1;
 }
@@ -178,7 +203,7 @@ CirculosButton.onClick = () => {
   transformationUI.Hide();
   WindowMenu.Hide();
 
-  gameObjects = [cartesian];
+  //gameObjects = [cartesian];
   Canvas.CanvasApi.SetLocation(CanvasContext, 2, new Window(new Vec2(-1, -1), new Vec2(2, 2)));
   selectedOption = 1;
   DrawingMenu.Show();
@@ -247,7 +272,9 @@ var update = (delta) => {
     g.Update(delta);
   }
   //test.Update();
-  TestObject.Update();
+  sphere.Update();
+  plane.Update();
+  //TestObject.Update();
   camera.Update(delta);
   menu.Update(delta);
   if (!select.Value()) return;
@@ -268,12 +295,18 @@ var render = () => {
 let count = 0;
 let delta = 0;
 let last = 0;
+let elapsed = 0;
+let fpsInterval = 1000 / 20;
 var frame = function (now) {
-  delta += now - last;
-  if (!paused) {
-    update((now - last) / 1000);
+  requestAnimationFrame(frame, CanvasContext.RawContext);
 
-    last = now;
+  delta += now - last;
+  elapsed = now - last;
+
+  if (!paused && elapsed > fpsInterval) {
+    update(1 / 60);
+
+    last = now - (elapsed % fpsInterval);
     count++;
 
     if (delta > 1000) {
@@ -285,10 +318,9 @@ var frame = function (now) {
 
     //update();
     CanvasContext.RawContext.clearRect(0, 0, CanvasContext.Width, CanvasContext.Height);
-    Canvas.CanvasApi.DrawCircle(CanvasContext, { x: CanvasContext.Width / 2, y: CanvasContext.Height / 2 }, new Vec3(0, 0, 1), 2, { x: 0, y: 0, z: 0, w: 1.0 })
+    //Canvas.CanvasApi.DrawCircle(CanvasContext, { x: CanvasContext.Width / 2, y: CanvasContext.Height / 2 }, new Vec3(0, 0, 1), 2, { x: 0, y: 0, z: 0, w: 1.0 })
     render();
   }
-  requestAnimationFrame(frame, CanvasContext.RawContext);
 };
 
 frame(0);
@@ -494,7 +526,7 @@ window.addEventListener("resize", () => {
 transformationUI.Hide();
 WindowMenu.Hide();
 
-gameObjects = [cartesian];
+//gameObjects = [cartesian];
 Canvas.CanvasApi.SetLocation(CanvasContext, 2, new Window(new Vec2(-1, -1), new Vec2(2, 2)));
 selectedOption = 1;
 DrawingMenu.Show();

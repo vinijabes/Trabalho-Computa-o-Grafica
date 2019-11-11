@@ -40,6 +40,7 @@ module.exports = class MonoBehavior {
 
     /**@type {GameObject} */
     get GameObject() { return this.m_GameObject; }
+
     get Transform() { return this.GameObject.Transform; }
     get Name() { return this.GameObject.Name; }
     get Tag() { return this.GameObject.Tag; }
