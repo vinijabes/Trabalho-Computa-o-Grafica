@@ -9,6 +9,11 @@ const Renderer = require('../../RendererSystem');
 
 module.exports = class CircleRenderer extends MeshRenderer {
     Render() {
+        this.GameObject.m_Material.m_Shader.UploadData('Ks', this.GameObject.m_Material.m_Ks);
+        this.GameObject.m_Material.m_Shader.UploadData('Kd', this.GameObject.m_Material.m_Kd);
+        this.GameObject.m_Material.m_Shader.UploadData('n', this.GameObject.m_Material.m_N);
+
+
         CanvasApi.AvaBindBuffer(CanvasApi.s_Context, BufferType.AVA_ARRAY_BUFFER, this.m_VBO);
         CanvasApi.AvaBindBuffer(CanvasApi.s_Context, BufferType.AVA_ELEMENT_ARRAY_BUFFER, this.m_EBO);
         

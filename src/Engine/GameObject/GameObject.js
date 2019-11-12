@@ -3,6 +3,7 @@ const Transform = require('./Components/Transform');
 const InputController = require('../InputController');
 const Time = require('../Time');
 const Vec3 = require('../../Mat/Vec3');
+const Material = require('./Classes/Material');
 
 module.exports = class GameObject {
     /**@type {Array<MonoBehavior>} */
@@ -11,6 +12,8 @@ module.exports = class GameObject {
     /**@type {boolean} */
     m_Active;
 
+    /**@type {Material} */
+    m_Material;
 
     m_Name;
     m_RotationSpeed = 60;
@@ -20,6 +23,7 @@ module.exports = class GameObject {
         this.m_Name = name;
 
         this.AddComponent(Transform);
+        this.m_Material = new Material();
     }
 
     /**

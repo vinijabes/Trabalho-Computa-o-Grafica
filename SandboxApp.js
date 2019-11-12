@@ -1,11 +1,12 @@
 const Ava = require('./src/Ava.js');
 const Canvas = Ava.Canvas;
-const { Mat4, Vec3, Vec2 } = require('./src/Mat');
+const { Mat4, Vec3, Vec2, Vec4 } = require('./src/Mat');
 const Camera = require('./src/Renderer/Camera');
 const VertexArray = require('./src/Renderer/VertexArray');
 const GameObject = require('./src/Engine/GameObject');
 const Circle = require('./src/Engine/Circle');
 const Window = require('./src/Renderer/Window');
+const Shader = require('./src/Renderer/Shader');
 const UI = require('./src/UI');
 const TransformationUI = require('./src/Scripts/TransformationUI');
 const GO = require('./src/Engine/GameObject/GameObject');
@@ -34,12 +35,56 @@ test.Transform.Translate({ x: 200, y: 200, z: 100 });
 let TestObject = new GO();
 TestObject.AddComponent(MeshRenderer);
 
+let shader = new Shader();
+
+shader.Compile((ava, location) => {
+  let N = location.normal;
+  let L = Vec3.Sub(location.lightPos, ava.position).Normalize();
+  let R = (N.Clone().Mult(2 * N.Dot(Vec3.Mult(L, -1)))).Add(L).Normalize();
+  let S = Vec3.Sub(location.observatorPos, ava.position).Normalize();
+
+  //console.log(Vec3.Mult(L, -1), N, R, S);
+
+  let cosTeta = ((N.Dot(L)) / (N.Norm() * L.Norm()));
+  let cosAlpha = (R.Dot(S)) / (R.Norm() * S.Norm());
+
+  let d = Vec3.Sub(location.lightPos, ava.position).Norm() / 120;
+  let k = 0.1;
+
+  // ava.color = new Vec4(
+  //     Vec3.Add(
+  //         Vec3.Mult(ava.color, 0.3),
+  //         ava.color.Mult(location.Kd * cosTeta))
+  //     , 1.0);
+
+  ava.color = new Vec4(
+    Vec3.Add(
+      Vec3.Mult(ava.color, 0.2),
+      ava.color.Mult((2 * location.Kd * cosTeta + location.Ks * Math.pow(cosAlpha, location.n)) / (k + d)))
+    , 1.0);
+});
+
 let sphere = new GO();
+sphere.m_Material.m_Shader = shader;
+sphere.m_Material.m_Ks = 0.8;
+sphere.m_Material.m_Kd = 0.3;
+sphere.m_Material.m_N = 50;
 sphere.AddComponent(SphereRenderer);
-sphere.GetComponent(SphereRenderer).Radius = 50;
+sphere.GetComponent(SphereRenderer).Radius = 70;
+sphere.GetComponent(SphereRenderer).Color = new Vec4(1, 0, 1, 1);
 
 let plane = new GO();
+plane.m_Material.m_Ks = 0.4;
+plane.m_Material.m_Kd = 0.7;
+plane.m_Material.m_N = 5;
+plane.m_Material.m_Shader = shader;
 plane.AddComponent(MeshRenderer);
+
+let light = new GO();
+light.AddComponent(SphereRenderer);
+light.GetComponent(SphereRenderer).Radius = 5;
+light.GetComponent(SphereRenderer).Color = new Vec4(1, 1, 1, 1);
+light.Transform.Translate(new Vec3(100, 0, 100));
 
 const verticesPlano =
   [
@@ -274,6 +319,7 @@ var update = (delta) => {
   //test.Update();
   sphere.Update();
   plane.Update();
+  light.Update();
   //TestObject.Update();
   camera.Update(delta);
   menu.Update(delta);

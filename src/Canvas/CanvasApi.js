@@ -225,10 +225,10 @@ module.exports = class CanvasApi {
             let x = 0;
             let y = i;
             let d = 3 - 2 * i;
-            this.DrawSphereSimetry(context, center, new Vec3(center.x, center.y, center.z + i), x, y, 0, color);
-            this.DrawSphereSimetry(context, center, new Vec3(center.x, center.y, center.z - i), x, y, 0, color);
-            this.DrawSphereSimetry(context, center, new Vec3(center.x + 1, center.y, center.z + i), x, y, 0, color);
-            this.DrawSphereSimetry(context, center, new Vec3(center.x + 1, center.y, center.z - i), x, y, 0, color);
+            this.DrawSphereSimetry(context, center, new Vec3(center.x, center.y, center.z + radius - i), x, y, 0, color);
+            this.DrawSphereSimetry(context, center, new Vec3(center.x, center.y, center.z - radius + i), x, y, 0, color);
+            this.DrawSphereSimetry(context, center, new Vec3(center.x + 1, center.y, center.z + radius - i), x, y, 0, color);
+            this.DrawSphereSimetry(context, center, new Vec3(center.x + 1, center.y, center.z - radius + i), x, y, 0, color);
 
             while (y >= x) {
                 x++;
@@ -240,10 +240,10 @@ module.exports = class CanvasApi {
                     d = d + 4 * x + 6;
                 }
 
-                this.DrawSphereSimetry(context, center, new Vec3(center.x, center.y, center.z + i), x, y, 0, color);
-                this.DrawSphereSimetry(context, center, new Vec3(center.x, center.y, center.z - i), x, y, 0, color);
-                this.DrawSphereSimetry(context, center, new Vec3(center.x + 1, center.y, center.z + i), x, y, 0, color);
-                this.DrawSphereSimetry(context, center, new Vec3(center.x + 1, center.y, center.z - i), x, y, 0, color);
+                this.DrawSphereSimetry(context, center, new Vec3(center.x, center.y, center.z + radius - i), x, y, 0, color);
+                this.DrawSphereSimetry(context, center, new Vec3(center.x, center.y, center.z - radius + i), x, y, 0, color);
+                this.DrawSphereSimetry(context, center, new Vec3(center.x + 1, center.y, center.z + radius - i), x, y, 0, color);
+                this.DrawSphereSimetry(context, center, new Vec3(center.x + 1, center.y, center.z - radius + i), x, y, 0, color);
             }
         }
     }
@@ -446,6 +446,12 @@ module.exports = class CanvasApi {
     static DrawTriangle(context, v1, v2, v3, color1, color2, color3) {
         const plane = new Plane();
         plane.Set3Points(v1, v2, v3);
+
+        if(plane.DistanceToPoint(new Vec3(100, 0, 100)) < 0){
+            plane.m_Normal.Mult(-1);
+            plane.m_Distance *= -1;
+        } 
+
         
         if (v1.y == v2.y && v1.y == v3.y) return;
         let A, B, C;
@@ -591,6 +597,14 @@ module.exports = class CanvasApi {
      */
     static GetLocation(context, location) {
         return context.GetLocation(location);
+    }
+
+    /**
+     * @param {CanvasContext} context
+     * @param {Shader} shader 
+     */
+    static AvaBindShader(context, shader) {
+        context.Shader = shader;
     }
 
     /**
@@ -741,13 +755,10 @@ module.exports = class CanvasApi {
         context.Shader.UploadData('lightPos', lightPos);
         context.Shader.UploadData('observatorPos', observatorPos);
 
-        context.Shader.UploadData('Kd', 0.8);
-        context.Shader.UploadData('Ks', 0.8);
-        context.Shader.UploadData('n', 50);
-
         for (let circle of circles) {
             v1 = new Vec3((vertexBuffer[circle * n + offset]), (vertexBuffer[circle * n + 1 + offset]), vertexBuffer[circle * n + 2 + offset]);
             let radius = vertexBuffer[circle * n + 3 + offset];
+            let color = new Vec4(vertexBuffer[circle * n + 4 + offset],vertexBuffer[circle * n + 5 + offset], vertexBuffer[circle * n + 6 + offset], vertexBuffer[circle * n + 7 + offset])
             if (transformation) v1 = v1.multiplyMat4(transformation);
 
             v1 = v1.multiplyMat4(camera.m_Transformation.multiplyMat4(camera.view));
@@ -756,7 +767,7 @@ module.exports = class CanvasApi {
             v1.y = (-v1.y / 2 + 0.5) * context.Height;
             
 
-            this.DrawSphere(context, new Vec3(v1.x, v1.y, v1.z), new Vec3(0, 0, 1), radius, { x: 1, y: 0, z: 1, w: 1.0 });            
+            this.DrawSphere(context, new Vec3(v1.x, v1.y, v1.z), new Vec3(0, 0, 1), radius, color);            
         }
 
     }
