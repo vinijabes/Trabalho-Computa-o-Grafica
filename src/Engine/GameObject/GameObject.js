@@ -79,6 +79,7 @@ module.exports = class GameObject {
             component.Update();
         }
 
+        return;
         if (!InputController.Instance().IsKeyDown(16)) {
             if (InputController.Instance().IsKeyDown(65)) {
                 this.Transform.Rotate(this.m_RotationSpeed * Time.delta, 0, 0);

@@ -4,5 +4,6 @@ module.exports = {
     HTMLObject: require('./UIHTMLObject'),
     Text: require('./UIText'),
     Input: require('./UIInput'),
-    Button: require('./UIButton')
+    Button: require('./UIButton'),
+    Checkbox: require('./UICheckbox')
 }

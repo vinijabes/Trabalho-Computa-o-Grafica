@@ -11,10 +11,13 @@ function createWindow () {
     width: 800,
     height: 600,
     frame: true,
+    resizable: false,
     webPreferences: {
       nodeIntegration: true
     }
   })
+
+  win.setMenuBarVisibility(false);
 
   // and load the index.html of the app.
   win.loadFile('index.html')

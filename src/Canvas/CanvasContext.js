@@ -26,38 +26,6 @@ module.exports = class CanvasContext {
         this.RendererBuffer = context.createImageData(this.Width, this.Height);
 
         this.Shader = new Shader();
-        this.Shader.UploadData('normal', new Vec3(1, 0, 0));
-        this.Shader.UploadData('lightPos', new Vec3(100, 0, 100));
-        this.Shader.UploadData('observatorPos', new Vec3(0, 0, 100));
-        this.Shader.UploadData('ambientColor', new Vec3(0.1, 0.09, 0));
-        this.Shader.UploadData('specularColor', new Vec3(1.0, 1.0, 1.0));
-        this.Shader.UploadData('Ka', 0.9);
-        this.Shader.UploadData('Kd', 0.7);
-        this.Shader.UploadData('Ks', 0.4);
-        this.Shader.UploadData('n', 5);
-        this.Shader.Compile((ava, location) => {
-            let N = location.normal;
-            let L = Vec3.Sub(location.lightPos, ava.position).Normalize();
-            let R = (N.Clone().Mult(2 * N.Dot(Vec3.Mult(L, -1)))).Add(L);
-            let S = Vec3.Sub(location.observatorPos, ava.position).Normalize();
-
-            let cosTeta = Math.abs((N.Dot(L)) / (N.Norm() * L.Norm()));
-            let cosAlpha = ((R.Dot(S)) / (R.Norm() * S.Norm()));
-
-            let d = Vec3.Sub(location.lightPos, ava.position).Norm()/70;
-            let k = 1;
-            
-            // ava.color = new Vec4(
-            //     Vec3.Add(
-            //         location.ambientColor.Mult(location.Ka),
-            //         ava.color.Mult(location.Kd * cosTeta))
-            //     , 1.0);
-            ava.color = new Vec4(
-                Vec3.Add(
-                    Vec3.Mult(location.ambientColor, location.Ka),
-                    ava.color.Mult((location.Kd * cosTeta + location.Ks * Math.pow(cosAlpha, location.n))/(k + d)))
-                , 1.0);
-        });
     }
 
     /**

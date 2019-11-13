@@ -36,32 +36,29 @@ let TestObject = new GO();
 TestObject.AddComponent(MeshRenderer);
 
 let shader = new Shader();
-
+shader.UploadData('phong', true);
 shader.Compile((ava, location) => {
   let N = location.normal;
   let L = Vec3.Sub(location.lightPos, ava.position).Normalize();
-  let R = (N.Clone().Mult(2 * N.Dot(Vec3.Mult(L, -1)))).Add(L).Normalize();
+  let R = (N.Clone().Mult(2 * N.Dot(L))).Sub(L).Normalize();
   let S = Vec3.Sub(location.observatorPos, ava.position).Normalize();
-
-  //console.log(Vec3.Mult(L, -1), N, R, S);
 
   let cosTeta = ((N.Dot(L)) / (N.Norm() * L.Norm()));
   let cosAlpha = (R.Dot(S)) / (R.Norm() * S.Norm());
 
-  let d = Vec3.Sub(location.lightPos, ava.position).Norm() / 120;
-  let k = 0.1;
+  let d = Vec3.Sub(location.lightPos, ava.position).Norm() / (Math.sqrt(ava.width**2 + ava.height**2)/8);
+  let k = -0.3;
 
-  // ava.color = new Vec4(
-  //     Vec3.Add(
-  //         Vec3.Mult(ava.color, 0.3),
-  //         ava.color.Mult(location.Kd * cosTeta))
-  //     , 1.0);
 
-  ava.color = new Vec4(
-    Vec3.Add(
-      Vec3.Mult(ava.color, 0.2),
-      ava.color.Mult((2 * location.Kd * cosTeta + location.Ks * Math.pow(cosAlpha, location.n)) / (k + d)))
-    , 1.0);
+  if(!location.phong){
+    ava.color = new Vec4(
+        Vec3.Add(
+            Vec3.Mult(ava.color, 0.26),
+            ava.color.Mult(location.Kd * cosTeta))
+        , 1.0);
+  }else{
+    ava.color = new Vec4(Vec3.Mult(ava.color, 0.2 + 0.6 * (location.Kd * cosTeta + location.Ks * Math.pow(cosAlpha, location.n)) / (k + d)), 1.0);
+  }
 });
 
 let sphere = new GO();
@@ -70,8 +67,19 @@ sphere.m_Material.m_Ks = 0.8;
 sphere.m_Material.m_Kd = 0.3;
 sphere.m_Material.m_N = 50;
 sphere.AddComponent(SphereRenderer);
-sphere.GetComponent(SphereRenderer).Radius = 70;
+sphere.GetComponent(SphereRenderer).Radius = 50;
 sphere.GetComponent(SphereRenderer).Color = new Vec4(1, 0, 1, 1);
+
+let sphere2 = new GO();
+sphere2.m_Material.m_Shader = shader;
+sphere2.m_Material.m_Ks = 0.8;
+sphere2.m_Material.m_Kd = 0.3;
+sphere2.m_Material.m_N = 50;
+sphere2.AddComponent(SphereRenderer);
+sphere2.GetComponent(SphereRenderer).Radius = 35;
+sphere2.GetComponent(SphereRenderer).Color = new Vec4(1, 0, 0, 1);
+sphere2.Transform.Translate(new Vec3(100, 0, 30));
+
 
 let plane = new GO();
 plane.m_Material.m_Ks = 0.4;
@@ -195,8 +203,8 @@ let select = new UI.Select(null);
 
 let projectionSelect = new UI.Select(null);
 projectionSelect.AddOption('Ortogonal', Mat4.Ortho());
-projectionSelect.AddOption('Cavaleira', Mat4.Cavaleira());
-projectionSelect.AddOption('Cabinet', Mat4.Cabinet());
+// projectionSelect.AddOption('Cavaleira', Mat4.Cavaleira());
+// projectionSelect.AddOption('Cabinet', Mat4.Cabinet());
 
 projectionSelect.onChange = (value) => {
   camera.SetProjection(value);
@@ -272,20 +280,33 @@ let DrawLineButton = new UI.Button(null, "Draw Line");
 DrawCircleButton.onClick = () => { selectedOption = 2; }
 DrawLineButton.onClick = () => { selectedOption = 1; }
 
-DrawingMenu.AddChild(DrawLineButton);
-DrawingMenu.AddChild(DrawCircleButton);
-DrawingMenu.AddChild(PauseButton);
+// DrawingMenu.AddChild(DrawLineButton);
+// DrawingMenu.AddChild(DrawCircleButton);
+//DrawingMenu.AddChild(PauseButton);
 
 DrawingMenu.m_DomNode.style.marginTop = '8px';
 
-menu.AddChild(select);
+let checkMenu = new UI.Menu(null);
+checkMenu.m_DomNode.style.flexDirection='row';
+checkMenu.m_DomNode.style.justifyContent='start';
+checkMenu.m_DomNode.style.marginTop='8px';
+checkMenu.m_DomNode.style.marginLeft='12px';
+let Checkbox = new UI.Checkbox(null, true);
+Checkbox.m_DomNode.style.marginTop = 'auto';
+Checkbox.m_DomNode.style.marginBottom = 'auto';
+
+checkMenu.AddChild(Checkbox);
+checkMenu.AddChild(new UI.Text(null, "Phong Shader"));
+
+// menu.AddChild(select);
 menu.AddChild(projectionSelect);
-menu.AddChild(TextX);
-menu.AddChild(TextY);
-menu.AddChild(TextZ);
-menu.AddChild(CasaButton);
-menu.AddChild(JanelaButton);
-menu.AddChild(CirculosButton);
+menu.AddChild(checkMenu);
+// menu.AddChild(TextX);
+// menu.AddChild(TextY);
+// menu.AddChild(TextZ);
+// menu.AddChild(CasaButton);
+// menu.AddChild(JanelaButton);
+// menu.AddChild(CirculosButton);
 
 let settingWindow = false;
 let transformationUI = new TransformationUI(null);
@@ -316,17 +337,21 @@ var update = (delta) => {
   for (let g of gameObjects) {
     g.Update(delta);
   }
+
+  shader.UploadData('phong', Checkbox.Value());
   //test.Update();
+  
   sphere.Update();
+  //sphere2.Update();
   plane.Update();
-  light.Update();
+  //light.Update();
   //TestObject.Update();
   camera.Update(delta);
   menu.Update(delta);
   if (!select.Value()) return;
-  TextX.SetText(`X: ${select.Value().center().x.toFixed(2)}`);
-  TextY.SetText(`Y: ${select.Value().center().y.toFixed(2)}`);
-  TextZ.SetText(`Z: ${select.Value().center().z.toFixed(2)}`);
+  // TextX.SetText(`X: ${select.Value().center().x.toFixed(2)}`);
+  // TextY.SetText(`Y: ${select.Value().center().y.toFixed(2)}`);
+  // TextZ.SetText(`Z: ${select.Value().center().z.toFixed(2)}`);
 }
 
 var render = () => {

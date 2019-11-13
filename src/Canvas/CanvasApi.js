@@ -115,7 +115,7 @@ module.exports = class CanvasApi {
         // if (!transformation) transformation = Mat4.Identity();
         let transformation = Mat4.Identity();
 
-        let data = {position: new Vec3(x, y, Math.round(origin.z)), color: new Vec4(color.x, color.y, color.z, color.w)};
+        let data = {width: context.Width, height: context.Height, position: new Vec3(x, y, Math.round(origin.z)), color: new Vec4(color.x, color.y, color.z, color.w)};
         context.Shader.Execute(data);
 
         this.DrawPixel(context, new Vec3(center.x + x, center.y + y, center.z).multiplyMat4(transformation), data.color);
@@ -170,42 +170,42 @@ module.exports = class CanvasApi {
         // if (!transformation) transformation = Mat4.Identity();
         let transformation = Mat4.Identity();
 
-        let data = {position: new Vec3(center.x + x, center.y + y, center.z), color: new Vec4(color.x, color.y, color.z, color.w)};
+        let data = {width: context.Width, height: context.Height, position: new Vec3(center.x + x, center.y + y, center.z), color: new Vec4(color.x, color.y, color.z, color.w)};
         context.Shader.UploadData('normal', Vec3.Sub(data.position, sphereCenter).Normalize());
         context.Shader.Execute(data);
         this.DrawPixel(context, data.position.multiplyMat4(transformation), data.color);
         
-        data = {position: new Vec3(center.x - x, center.y + y, center.z), color: new Vec4(color.x, color.y, color.z, color.w)};
+        data = {width: context.Width, height: context.Height, position: new Vec3(center.x - x, center.y + y, center.z), color: new Vec4(color.x, color.y, color.z, color.w)};
         context.Shader.UploadData('normal', Vec3.Sub(data.position, sphereCenter).Normalize());
         context.Shader.Execute(data);
         this.DrawPixel(context, data.position.multiplyMat4(transformation), data.color);
 
-        data = {position: new Vec3(center.x + x, center.y - y, center.z), color: new Vec4(color.x, color.y, color.z, color.w)};
+        data = {width: context.Width, height: context.Height, position: new Vec3(center.x + x, center.y - y, center.z), color: new Vec4(color.x, color.y, color.z, color.w)};
         context.Shader.UploadData('normal', Vec3.Sub(data.position, sphereCenter).Normalize());
         context.Shader.Execute(data);
         this.DrawPixel(context, data.position.multiplyMat4(transformation), data.color);
 
-        data = {position: new Vec3(center.x - x, center.y - y, center.z), color: new Vec4(color.x, color.y, color.z, color.w)};
+        data = {width: context.Width, height: context.Height, position: new Vec3(center.x - x, center.y - y, center.z), color: new Vec4(color.x, color.y, color.z, color.w)};
         context.Shader.UploadData('normal', Vec3.Sub(data.position, sphereCenter).Normalize());
         context.Shader.Execute(data);
         this.DrawPixel(context, data.position.multiplyMat4(transformation), data.color);
 
-        data = {position: new Vec3(center.x + y, center.y + x, center.z), color: new Vec4(color.x, color.y, color.z, color.w)};
+        data = {width: context.Width, height: context.Height, position: new Vec3(center.x + y, center.y + x, center.z), color: new Vec4(color.x, color.y, color.z, color.w)};
         context.Shader.UploadData('normal', Vec3.Sub(data.position, sphereCenter).Normalize());
         context.Shader.Execute(data);
         this.DrawPixel(context, data.position.multiplyMat4(transformation), data.color);
 
-        data = {position: new Vec3(center.x - y, center.y + x, center.z), color: new Vec4(color.x, color.y, color.z, color.w)};
+        data = {width: context.Width, height: context.Height, position: new Vec3(center.x - y, center.y + x, center.z), color: new Vec4(color.x, color.y, color.z, color.w)};
         context.Shader.UploadData('normal', Vec3.Sub(data.position, sphereCenter).Normalize());
         context.Shader.Execute(data);
         this.DrawPixel(context, data.position.multiplyMat4(transformation), data.color);
 
-        data = {position: new Vec3(center.x + y, center.y - x, center.z), color: new Vec4(color.x, color.y, color.z, color.w)};
+        data = {width: context.Width, height: context.Height, position: new Vec3(center.x + y, center.y - x, center.z), color: new Vec4(color.x, color.y, color.z, color.w)};
         context.Shader.UploadData('normal', Vec3.Sub(data.position, sphereCenter).Normalize());
         context.Shader.Execute(data);
         this.DrawPixel(context, data.position.multiplyMat4(transformation), data.color);
 
-        data = {position: new Vec3(center.x - y, center.y - x, center.z), color: new Vec4(color.x, color.y, color.z, color.w)};
+        data = {width: context.Width, height: context.Height, position: new Vec3(center.x - y, center.y - x, center.z), color: new Vec4(color.x, color.y, color.z, color.w)};
         context.Shader.UploadData('normal', Vec3.Sub(data.position, sphereCenter).Normalize());
         context.Shader.Execute(data);
         this.DrawPixel(context, data.position.multiplyMat4(transformation), data.color);
@@ -268,7 +268,7 @@ module.exports = class CanvasApi {
 
         var err = 2 * dX - dY;
         for (let i = y; i < dest.y; i++) {
-            let data = {position: new Vec3(x, i, Math.round(origin.z)), color: new Vec4(color.x, color.y, color.z, color.w)};
+            let data = {width: context.Width, height: context.Height, position: new Vec3(x, i, Math.round(origin.z)), color: new Vec4(color.x, color.y, color.z, color.w)};
             context.Shader.Execute(data);
             this.DrawPixel(context, data.position, data.color);
             if (err > 0) {
@@ -305,7 +305,7 @@ module.exports = class CanvasApi {
         let dZStep = (dX != 0) ? dZ / dX : 0;
 
         for (let i = x; i < dest.x; i++) {
-            let data = {position: new Vec3(i, y, Math.round(z)), color: new Vec4(color.x, color.y, color.z, color.w)};
+            let data = {width: context.Width, height: context.Height, position: new Vec3(i, y, Math.round(z)), color: new Vec4(color.x, color.y, color.z, color.w)};
             context.Shader.Execute(data);
             this.DrawPixel(context, data.position, data.color);
             if (err > 0) {
@@ -447,7 +447,7 @@ module.exports = class CanvasApi {
         const plane = new Plane();
         plane.Set3Points(v1, v2, v3);
 
-        if(plane.DistanceToPoint(new Vec3(100, 0, 100)) < 0){
+        if(plane.m_Normal.z < 0){
             plane.m_Normal.Mult(-1);
             plane.m_Distance *= -1;
         } 

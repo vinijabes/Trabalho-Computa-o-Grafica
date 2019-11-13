@@ -9,6 +9,9 @@ module.exports = class Camera {
     m_Transformation = Mat4.Identity();
 
     m_RotationSpeed = 30.0;
+    m_TranslationSpeed = 80;
+
+    m_Position = new Vec3(0, 0, 100);
 
     SetProjection(projectionMatrix) {
         this.projection = projectionMatrix;
@@ -25,6 +28,35 @@ module.exports = class Camera {
     }
 
     Update(delta) {
+        return;
+        console.log(this.m_Position);
+        if (InputController.Instance().IsKeyDown(37)) {
+            this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationY(delta*this.m_RotationSpeed));
+            //this.m_Position.x -= this.m_TranslationSpeed * delta;            
+        }
+
+        if (InputController.Instance().IsKeyDown(39)) {
+            this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationY(-delta*this.m_RotationSpeed));
+            //this.m_Position.x += this.m_TranslationSpeed * delta;
+        }
+
+        if (InputController.Instance().IsKeyDown(38)) {
+            this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationX(delta*this.m_RotationSpeed));            
+            //this.m_Position.y += this.m_TranslationSpeed * delta;
+        }
+
+        if (InputController.Instance().IsKeyDown(40)) {
+            this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationX(-delta*this.m_RotationSpeed));            
+            //this.m_Position.y -= this.m_TranslationSpeed * delta;            
+        }
+
+        if (InputController.Instance().IsKeyDown(17)) {
+            this.m_Position.z -= this.m_TranslationSpeed * delta;            
+        }
+
+        if (InputController.Instance().IsKeyDown(32)) {
+            this.m_Position.z += this.m_TranslationSpeed * delta;            
+        }
         return;
         if (InputController.Instance().IsKeyDown(16)) {
             if (InputController.Instance().IsKeyDown(65)) {
