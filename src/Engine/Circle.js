@@ -1,7 +1,7 @@
 const { Vec3, Mat4 } = require('../Mat');
 const { CanvasApi, CanvasContext } = require('../Canvas');
 const { BufferType, DrawMode } = require('../Constants')
-const GameObject = require('./GameObject');
+const GameObject = require('./Object');
 
 module.exports = class Circle extends GameObject {
     /**

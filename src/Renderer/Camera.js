@@ -27,27 +27,26 @@ module.exports = class Camera {
         this.projectionViewMatrix = this.projection.multiplyMat4(this.view);
     }
 
-    Update(delta) {
-        return;
-        console.log(this.m_Position);
+    Update(delta) {        
+        //console.log(this.m_Position);
         if (InputController.Instance().IsKeyDown(37)) {
-            this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationY(delta*this.m_RotationSpeed));
-            //this.m_Position.x -= this.m_TranslationSpeed * delta;            
+            //this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationY(delta*this.m_RotationSpeed));
+            this.m_Position.x -= this.m_TranslationSpeed * delta;            
         }
 
         if (InputController.Instance().IsKeyDown(39)) {
-            this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationY(-delta*this.m_RotationSpeed));
-            //this.m_Position.x += this.m_TranslationSpeed * delta;
+            //this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationY(-delta*this.m_RotationSpeed));
+            this.m_Position.x += this.m_TranslationSpeed * delta;
         }
 
         if (InputController.Instance().IsKeyDown(38)) {
-            this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationX(delta*this.m_RotationSpeed));            
-            //this.m_Position.y += this.m_TranslationSpeed * delta;
+            //this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationX(delta*this.m_RotationSpeed));            
+            this.m_Position.y += this.m_TranslationSpeed * delta;
         }
 
         if (InputController.Instance().IsKeyDown(40)) {
-            this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationX(-delta*this.m_RotationSpeed));            
-            //this.m_Position.y -= this.m_TranslationSpeed * delta;            
+            //this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationX(-delta*this.m_RotationSpeed));            
+            this.m_Position.y -= this.m_TranslationSpeed * delta;            
         }
 
         if (InputController.Instance().IsKeyDown(17)) {

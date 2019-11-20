@@ -349,7 +349,7 @@ module.exports = class CanvasApi {
         lightPos.x = (lightPos.x / 2 + 0.5) * context.Width;
         lightPos.y = (-lightPos.y / 2 + 0.5) * context.Height;
 
-        let observatorPos = new Vec3(0, 0, 100).multiplyMat4(camera.projectionViewMatrix);
+        let observatorPos = camera.m_Position.multiplyMat4(camera.projectionViewMatrix);
         observatorPos.x = (observatorPos.x / 2 + 0.5) * context.Width;
         observatorPos.y = (-observatorPos.y / 2 + 0.5) * context.Height;
 
@@ -748,7 +748,7 @@ module.exports = class CanvasApi {
         lightPos.x = (lightPos.x / 2 + 0.5) * context.Width;
         lightPos.y = (-lightPos.y / 2 + 0.5) * context.Height;
 
-        let observatorPos = new Vec3(0, 0, 100).multiplyMat4(camera.projectionViewMatrix);
+        let observatorPos = camera.m_Position.multiplyMat4(camera.projectionViewMatrix);
         observatorPos.x = (observatorPos.x / 2 + 0.5) * context.Width;
         observatorPos.y = (-observatorPos.y / 2 + 0.5) * context.Height;
 

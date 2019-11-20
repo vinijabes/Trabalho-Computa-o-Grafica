@@ -1,3 +1,6 @@
+const Vec3 = require('../Mat/Vec3');
+const Vec4 = require('../Mat/Vec4');
+
 module.exports = class Shader {
 
     m_Data = {};
@@ -9,7 +12,8 @@ module.exports = class Shader {
     }
 
     Compile(script){
-        this.m_Function = typeof script == 'function' ? script : new Function('ava', 'location', script);
+        let context = {Vec3, Vec4};
+        this.m_Function = typeof script == 'function' ? script : new Function('ava', 'location', script).bind(context);
     }
 
     Execute(data){

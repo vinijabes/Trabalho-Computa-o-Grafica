@@ -24,6 +24,7 @@ module.exports = class GameObject {
 
         this.AddComponent(Transform);
         this.m_Material = new Material();
+        this.m_Active = true;
     }
 
     /**
@@ -71,7 +72,7 @@ module.exports = class GameObject {
     }
 
     SetActive(active) {
-        this.m_active = active;
+        this.m_Active = active;
     }
 
     Update() {
@@ -79,7 +80,8 @@ module.exports = class GameObject {
             component.Update();
         }
 
-        return;
+        if(!this.m_Active) return;
+
         if (!InputController.Instance().IsKeyDown(16)) {
             if (InputController.Instance().IsKeyDown(65)) {
                 this.Transform.Rotate(this.m_RotationSpeed * Time.delta, 0, 0);

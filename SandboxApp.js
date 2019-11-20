@@ -45,9 +45,11 @@ shader.Compile((ava, location) => {
 
   let cosTeta = ((N.Dot(L)) / (N.Norm() * L.Norm()));
   let cosAlpha = (R.Dot(S)) / (R.Norm() * S.Norm());
+  if(cosAlpha < 0) cosAlpha = 0;
+
 
   let d = Vec3.Sub(location.lightPos, ava.position).Norm() / (Math.sqrt(ava.width**2 + ava.height**2)/8);
-  let k = -0.3;
+  let k = 0.3;
 
 
   if(!location.phong){
@@ -57,12 +59,16 @@ shader.Compile((ava, location) => {
             ava.color.Mult(location.Kd * cosTeta))
         , 1.0);
   }else{
-    ava.color = new Vec4(Vec3.Mult(ava.color, 0.2 + 0.6 * (location.Kd * cosTeta + location.Ks * Math.pow(cosAlpha, location.n)) / (k + d)), 1.0);
+    ava.color = new Vec4(Vec3.Mult(ava.color, 0.2 + 1.4 * (location.Kd * cosTeta + location.Ks * Math.pow(cosAlpha, location.n)) / (k + d)), 1.0);
   }
 });
 
+
+let multipleLightPointsShader = new Shader();
+multipleLightPointsShader.Compile("let N = location.normal; let L = this.Vec3.Sub(location.lightPos, ava.position).Normalize(); let R = (N.Clone().Mult(2 * N.Dot(L))).Sub(L).Normalize(); let S = this.Vec3.Sub(location.observatorPos, ava.position).Normalize(); let cosTeta = ((N.Dot(L)) / (N.Norm() * L.Norm())); let cosAlpha = (R.Dot(S)) / (R.Norm() * S.Norm()); if(cosAlpha < 0) cosAlpha = 0; let d = this.Vec3.Sub(location.lightPos, ava.position).Norm() / (Math.sqrt(ava.width**2 + ava.height**2)/8); let k = 0.3; ava.color = new this.Vec4(this.Vec3.Mult(ava.color, 0.2 + 1.4 * (location.Kd * cosTeta + location.Ks * Math.pow(cosAlpha, location.n)) / (k + d)), 1.0);");
+
 let sphere = new GO();
-sphere.m_Material.m_Shader = shader;
+sphere.m_Material.m_Shader = multipleLightPointsShader;
 sphere.m_Material.m_Ks = 0.8;
 sphere.m_Material.m_Kd = 0.3;
 sphere.m_Material.m_N = 50;
@@ -93,6 +99,7 @@ light.AddComponent(SphereRenderer);
 light.GetComponent(SphereRenderer).Radius = 5;
 light.GetComponent(SphereRenderer).Color = new Vec4(1, 1, 1, 1);
 light.Transform.Translate(new Vec3(100, 0, 100));
+light.SetActive(false);
 
 const verticesPlano =
   [
@@ -342,9 +349,9 @@ var update = (delta) => {
   //test.Update();
   
   sphere.Update();
-  //sphere2.Update();
+  sphere2.Update();
   plane.Update();
-  //light.Update();
+  light.Update();
   //TestObject.Update();
   camera.Update(delta);
   menu.Update(delta);
