@@ -4,6 +4,7 @@ const Vec4 = require('../Mat/Vec4');
 module.exports = class Shader {
 
     m_Data = {};
+    m_Function = () => {};
 
     Bind() {
     };
