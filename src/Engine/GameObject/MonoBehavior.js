@@ -1,5 +1,3 @@
-const GameObject = require('./GameObject');
-
 module.exports = class MonoBehavior {
 
     Start() {

@@ -1,7 +1,8 @@
-const { Vec3, Mat4 } = require('../Mat/index');
+const InputController = require('../Engine/InputController');
+const Transform = require('../Engine/GameObject/Components/Transform');
 const CanvasApi = require('../Canvas/CanvasApi');
 const Utils = require('../Util');
-const InputController = require('../Engine/InputController');
+const { Vec3, Mat4 } = require('../Mat/index');
 
 module.exports = class Camera {
     projection = new Mat4();
@@ -12,6 +13,12 @@ module.exports = class Camera {
     m_TranslationSpeed = 80;
 
     m_Position = new Vec3(0, 0, 100);
+
+    constructor() {
+        this.m_Transform = new Transform();
+        this.m_Transform.Start();
+        this.m_Transform.Translate(new Vec3(0, 0, 100));
+    }
 
     SetProjection(projectionMatrix) {
         this.projection = projectionMatrix;
@@ -27,53 +34,50 @@ module.exports = class Camera {
         this.projectionViewMatrix = this.projection.multiplyMat4(this.view);
     }
 
-    Update(delta) {        
+    Update(delta) {
         //console.log(this.m_Position);
         if (InputController.Instance().IsKeyDown(37)) {
-            //this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationY(delta*this.m_RotationSpeed));
+            this.m_Transform.Translate(new Vec3(this.m_TranslationSpeed * delta, 0, 0));            
             this.m_Position.x -= this.m_TranslationSpeed * delta;            
         }
 
         if (InputController.Instance().IsKeyDown(39)) {
-            //this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationY(-delta*this.m_RotationSpeed));
-            this.m_Position.x += this.m_TranslationSpeed * delta;
+            this.m_Transform.Translate(new Vec3(-this.m_TranslationSpeed * delta, 0, 0));            
+             this.m_Position.x += this.m_TranslationSpeed * delta;
         }
 
         if (InputController.Instance().IsKeyDown(38)) {
-            //this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationX(delta*this.m_RotationSpeed));            
+            this.m_Transform.Translate(new Vec3(0, -this.m_TranslationSpeed * delta, 0));            
             this.m_Position.y += this.m_TranslationSpeed * delta;
         }
 
         if (InputController.Instance().IsKeyDown(40)) {
-            //this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationX(-delta*this.m_RotationSpeed));            
+            this.m_Transform.Translate(new Vec3(0, this.m_TranslationSpeed * delta, 0));            
             this.m_Position.y -= this.m_TranslationSpeed * delta;            
         }
 
-        if (InputController.Instance().IsKeyDown(17)) {
-            this.m_Position.z -= this.m_TranslationSpeed * delta;            
+        if (InputController.Instance().IsKeyDown(65)) {
+            this.m_Transform.Rotate(this.m_RotationSpeed * delta, 0, 0);
+            //this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationX(this.m_RotationSpeed * delta));
         }
 
-        if (InputController.Instance().IsKeyDown(32)) {
-            this.m_Position.z += this.m_TranslationSpeed * delta;            
+        if (InputController.Instance().IsKeyDown(68)) {
+            this.m_Transform.Rotate(this.m_RotationSpeed * -delta, 0, 0);
+            //this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationX(-this.m_RotationSpeed * delta));
         }
-        return;
-        if (InputController.Instance().IsKeyDown(16)) {
-            if (InputController.Instance().IsKeyDown(65)) {
-                this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationX(this.m_RotationSpeed * delta));
-            }
 
-            if (InputController.Instance().IsKeyDown(68)) {
-                this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationX(-this.m_RotationSpeed * delta));
-            }
-
-            if (InputController.Instance().IsKeyDown(87)) {
-                this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationY(this.m_RotationSpeed * delta));
-            }
-
-            if (InputController.Instance().IsKeyDown(83)) {
-                this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationY(-this.m_RotationSpeed * delta));
-            }
+        if (InputController.Instance().IsKeyDown(87)) {
+            this.m_Transform.Rotate(0, this.m_RotationSpeed * delta, 0);
+            //this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationY(this.m_RotationSpeed * delta));
         }
+
+        if (InputController.Instance().IsKeyDown(83)) {
+            this.m_Transform.Rotate(0, this.m_RotationSpeed * -delta, 0);
+            //this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationY(-this.m_RotationSpeed * delta));
+        }
+
+        this.m_Transform.Update();
+        this.m_Transformation = this.m_Transform.m_TransformationMatrix;
     }
 
     /**
@@ -87,4 +91,5 @@ module.exports = class Camera {
     }
 
     get unProject() { return new Mat4(Utils.invertMatrix(this.projection.elements)); }
+    get Position() { return this.m_Transform.m_Position; }
 }

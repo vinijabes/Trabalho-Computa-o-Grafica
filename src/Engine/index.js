@@ -5,4 +5,5 @@ module.exports = {
     Classes: require('./GameObject/Classes'),
     InputController: require('./InputController'),
     Time: require('./Time'),
+    RendererSystem: require('./RendererSystem')
 }

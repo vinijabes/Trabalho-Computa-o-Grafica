@@ -1,20 +1,17 @@
 const Ava = require('./src/Ava.js');
 const Canvas = Ava.Canvas;
-const { Mat4, Vec3, Vec2, Vec4 } = require('./src/Mat');
-const Camera = require('./src/Renderer/Camera');
-const VertexArray = require('./src/Renderer/VertexArray');
-const GameObject = require('./src/Engine/GameObject');
-const Circle = require('./src/Engine/Circle');
-const Window = require('./src/Renderer/Window');
-const Shader = require('./src/Renderer/Shader');
+const GO = Ava.Engine.GameObject;
+const { Mat4, Vec3, Vec2, Vec4 } = Ava.Math;
+const Camera = Ava.Renderer.Camera;
+const VertexArray = Ava.Renderer.VertexArray;
+const Window = Ava.Renderer.Window;
+const Shader = Ava.Renderer.Shader;
 const UI = require('./src/UI');
 const TransformationUI = require('./src/Scripts/TransformationUI');
-const GO = require('./src/Engine/GameObject/GameObject');
-const MeshRenderer = require('./src/Engine/GameObject/Components/MeshRenderer');
-const SphereRenderer = require('./src/Engine/GameObject/Components/SphereRenderer');
-const Collider = require('./src/Engine/GameObject/Components/SphereCollider');
-const RendererSystem = require('./src/Engine/RendererSystem');
-const Time = require('./src/Engine/Time');
+const MeshRenderer = Ava.Engine.Components.MeshRenderer;
+const SphereRenderer = Ava.Engine.Components.SphereRenderer;
+const RendererSystem = Ava.Engine.RendererSystem;
+const Time = Ava.Engine.Time;
 
 const gameObjectsSelect = document.getElementById("gameobjects");
 const c = document.getElementById('view');
@@ -31,7 +28,6 @@ let test = new GO();
 test.AddComponent(MeshRenderer);
 test.Transform.Translate({ x: 200, y: 200, z: 100 });
 
-
 let TestObject = new GO();
 TestObject.AddComponent(MeshRenderer);
 
@@ -45,8 +41,7 @@ shader.Compile((ava, location) => {
 
   let cosTeta = ((N.Dot(L)) / (N.Norm() * L.Norm()));
   let cosAlpha = (R.Dot(S)) / (R.Norm() * S.Norm());
-  if(cosAlpha < 0) cosAlpha = 0;
-
+  if(cosTeta < 0 || cosAlpha < 0) cosAlpha = 0;
 
   let d = Vec3.Sub(location.lightPos, ava.position).Norm() / (Math.sqrt(ava.width**2 + ava.height**2)/8);
   let k = 0.3;
@@ -64,11 +59,11 @@ shader.Compile((ava, location) => {
 });
 
 
-let multipleLightPointsShader = new Shader();
-multipleLightPointsShader.Compile("let N = location.normal; let L = this.Vec3.Sub(location.lightPos, ava.position).Normalize(); let R = (N.Clone().Mult(2 * N.Dot(L))).Sub(L).Normalize(); let S = this.Vec3.Sub(location.observatorPos, ava.position).Normalize(); let cosTeta = ((N.Dot(L)) / (N.Norm() * L.Norm())); let cosAlpha = (R.Dot(S)) / (R.Norm() * S.Norm()); if(cosAlpha < 0) cosAlpha = 0; let d = this.Vec3.Sub(location.lightPos, ava.position).Norm() / (Math.sqrt(ava.width**2 + ava.height**2)/8); let k = 0.3; ava.color = new this.Vec4(this.Vec3.Mult(ava.color, 0.2 + 1.4 * (location.Kd * cosTeta + location.Ks * Math.pow(cosAlpha, location.n)) / (k + d)), 1.0);");
+  let multipleLightPointsShader = new Shader();
+  multipleLightPointsShader.Compile("let N = location.normal; let L = this.Vec3.Sub(location.lightPos, ava.position).Normalize(); let R = (N.Clone().Mult(2 * N.Dot(L))).Sub(L).Normalize(); let S = this.Vec3.Sub(location.observatorPos, ava.position).Normalize(); let cosTeta = ((N.Dot(L)) / (N.Norm() * L.Norm())); let cosAlpha = (R.Dot(S)) / (R.Norm() * S.Norm()); if(cosAlpha < 0) cosAlpha = 0; let d = this.Vec3.Sub(location.lightPos, ava.position).Norm() / (Math.sqrt(ava.width**2 + ava.height**2)/8); let k = 0.3; ava.color = new this.Vec4(this.Vec3.Mult(ava.color, 0.2 + 1.4 * (location.Kd * cosTeta + location.Ks * Math.pow(cosAlpha, location.n)) / (k + d)), 1.0);");
 
 let sphere = new GO();
-sphere.m_Material.m_Shader = multipleLightPointsShader;
+sphere.m_Material.m_Shader = shader;
 sphere.m_Material.m_Ks = 0.8;
 sphere.m_Material.m_Kd = 0.3;
 sphere.m_Material.m_N = 50;
@@ -193,18 +188,6 @@ let gameObjects = [];
 //gameObjects.push(sphere);
 
 
-let cartesian = new GameObject("Plano Cartesiano", false);
-cartesian.m_VertexBuffer = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
-cartesian.m_IndexBuffer = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
-cartesian.m_Vertex =
-  [
-    -CanvasContext.Width / 2, 0, 0,
-    CanvasContext.Width / 2, 0, 0,
-    0, -CanvasContext.Height / 2, 0,
-    0, CanvasContext.Height / 2, 0,
-  ];
-cartesian.m_Index = [0, 1, 2, 3];
-
 let menu = new UI.Menu(new UI.HTMLObject(document.getElementById('menu')));
 let select = new UI.Select(null);
 
@@ -225,52 +208,6 @@ let CasaButton = new UI.Button(null, 'Casa');
 let JanelaButton = new UI.Button(null, 'Janela + Linhas');
 let CirculosButton = new UI.Button(null, 'Círculos + Linhas');
 let PauseButton = new UI.Button(null, 'Pause');
-
-CasaButton.onClick = () => {
-  let go = new GameObject("Casa");
-  go.m_VertexBuffer = ArrayBufferCasa;
-  go.m_IndexBuffer = IndexBufferCasa;
-  go.m_Vertex = verticesCasa;
-  go.m_Index = indicesVertices;
-  gameObjects = [];
-  gameObjects.push(go);
-  //gameObjects.push(cartesian);
-
-  transformationUI.Show();
-  WindowMenu.Hide();
-  DrawingMenu.Hide();
-
-  select.m_Options = [];
-  select.AddOption(go.m_Name, go);
-  Canvas.CanvasApi.SetLocation(CanvasContext, 2, new Window(new Vec2(-1, -1), new Vec2(2, 2)));
-  selectedOption = 0;
-  transformationUI.Reset();
-}
-
-JanelaButton.onClick = () => {
-  transformationUI.Hide();
-  DrawingMenu.Hide();
-  WindowMenu.Show();
-
-  select.m_Options = [];
-  select.Render();
-  //gameObjects = [cartesian];
-  Canvas.CanvasApi.SetLocation(CanvasContext, 2, new Window(new Vec2(-1, -1), new Vec2(2, 2)));
-  selectedOption = 1;
-}
-
-CirculosButton.onClick = () => {
-  transformationUI.Hide();
-  WindowMenu.Hide();
-
-  //gameObjects = [cartesian];
-  Canvas.CanvasApi.SetLocation(CanvasContext, 2, new Window(new Vec2(-1, -1), new Vec2(2, 2)));
-  selectedOption = 1;
-  DrawingMenu.Show();
-
-  select.m_Options = [];
-  select.Render();
-}
 
 let paused = false;
 PauseButton.onClick = () => {
@@ -419,25 +356,8 @@ c.onmouseup = (e) => {
 
   if (!settingWindow) {
     if (selectedOption == 1) {
-      let g = new GameObject('Linha', false);
-      g.m_VertexBuffer = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
-      g.m_IndexBuffer = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
-      g.m_Vertex =
-        [
-          initial.x, initial.y, 0,
-          end.x, end.y, 0
-        ];
-      g.m_Index = [0, 1];
-
-      gameObjects.push(g);
       select.AddOption('Linha', g);
     } else if (selectedOption == 2) {
-      if (gameObjects.indexOf(circlePreview) != -1) gameObjects.splice(gameObjects.indexOf(circlePreview), 1);
-      let g = new Circle(new Vec3(initial.x, initial.y, Math.floor(Math.sqrt(Math.pow(end.x - initial.x, 2) + Math.pow(end.y - initial.y, 2)))));
-      g.m_VertexBuffer = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
-      g.m_IndexBuffer = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
-
-      gameObjects.push(g);
       select.AddOption('Circle', g);
     }
   } else {
@@ -454,19 +374,6 @@ c.onmouseup = (e) => {
     let left = Math.min(initial.x, end.x);
     let right = Math.max(initial.x, end.x);
 
-    windowObject = new GameObject("Window", false);
-    windowObject.m_VertexBuffer = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
-    windowObject.m_IndexBuffer = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
-    windowObject.m_Vertex =
-      [
-        left + 1, top - 1, 0,
-        right - 1, top - 1, 0,
-        right - 1, bottom + 1, 0,
-        left + 1, bottom + 1, 0
-      ];
-    windowObject.m_Index = [0, 1, 1, 2, 2, 3, 3, 0];
-    gameObjects.push(windowObject);
-
     Canvas.CanvasApi.SetLocation(CanvasContext, 2, new Window(new Vec2(Math.min(v3I.x, v3F.x), Math.min(v3I.y, v3F.y)), new Vec2(Math.abs(v3F.x - v3I.x), Math.abs(v3F.y - v3I.y))));
     settingWindow = false;
   }
@@ -474,15 +381,6 @@ c.onmouseup = (e) => {
   //Canvas.CanvasApi.DrawLine(CanvasContext, initial, end, { x: 1.0, y: 0, z: 0, w: 1.0 }, 1);
   //Canvas.CanvasApi.DrawCircle(CanvasContext, initial, Math.sqrt((initial.x - end.x) ** 2 + (initial.y - end.y) ** 2), { x: Math.random(), y: Math.random(), z: Math.random(), w: 1.0 })
 }
-
-let linePreview = new GameObject('Linha', false);
-linePreview.m_VertexBuffer = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
-linePreview.m_IndexBuffer = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
-linePreview.m_Index = [0, 1];
-
-let circlePreview = new Circle(new Vec3(0, 0, 0));
-circlePreview.m_VertexBuffer = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
-circlePreview.m_IndexBuffer = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
 
 c.onmousemove = (e) => {
   if (settingWindow && initial.x && initial.y) {
@@ -498,20 +396,6 @@ c.onmousemove = (e) => {
     let bottom = Math.min(initial.y, -(e.offsetY - CanvasContext.Height / 2));
     let left = Math.min(initial.x, e.offsetX - CanvasContext.Width / 2);
     let right = Math.max(initial.x, e.offsetX - CanvasContext.Width / 2);
-
-    windowObject = new GameObject("Window", false);
-    windowObject.m_VertexBuffer = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
-    windowObject.m_IndexBuffer = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
-    windowObject.m_Vertex =
-      [
-        left + 1, top - 1, 0,
-        right - 1, top - 1, 0,
-        right - 1, bottom + 1, 0,
-        left + 1, bottom + 1, 0
-      ];
-    windowObject.m_Index = [0, 1, 1, 2, 2, 3, 3, 0];
-    gameObjects.push(windowObject);
-
 
     Canvas.CanvasApi.SetLocation(CanvasContext, 2, new Window(new Vec2(Math.min(v3I.x, v3F.x), Math.min(v3I.y, v3F.y)), new Vec2(Math.abs(v3F.x - v3I.x), Math.abs(v3F.y - v3I.y))));
   } else if (settingWindow) {
@@ -559,19 +443,6 @@ c.onmouseleave = (e) => {
     bottom = Math.min(Math.max(bottom, - CanvasContext.Height / 2), CanvasContext.Height / 2);
     left = Math.min(Math.max(left, - CanvasContext.Width / 2), CanvasContext.Width / 2);
     right = Math.min(Math.max(right, - CanvasContext.Width / 2), CanvasContext.Width / 2);
-
-    windowObject = new GameObject("Window", false);
-    windowObject.m_VertexBuffer = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
-    windowObject.m_IndexBuffer = Canvas.CanvasApi.AvaCreateBuffer(CanvasContext, 1);
-    windowObject.m_Vertex =
-      [
-        left + 1, top - 1, 0,
-        right - 1, top - 1, 0,
-        right - 1, bottom + 1, 0,
-        left + 1, bottom + 1, 0
-      ];
-    windowObject.m_Index = [0, 1, 1, 2, 2, 3, 3, 0];
-    gameObjects.push(windowObject);
 
     Canvas.CanvasApi.SetLocation(CanvasContext, 2, new Window(new Vec2(Math.min(v3I.x, v3F.x), Math.min(v3I.y, v3F.y)), new Vec2(Math.abs(v3F.x - v3I.x), Math.abs(v3F.y - v3I.y))));
     settingWindow = false;

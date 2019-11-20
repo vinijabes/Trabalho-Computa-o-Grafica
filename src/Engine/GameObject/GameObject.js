@@ -1,5 +1,5 @@
 const MonoBehavior = require('./MonoBehavior')
-const Transform = require('./Components/Transform');
+const {Transform} = require('./Components');
 const InputController = require('../InputController');
 const Time = require('../Time');
 const Vec3 = require('../../Mat/Vec3');
@@ -32,12 +32,15 @@ module.exports = class GameObject {
      * @param {MonoBehavior} ComponentType 
      */
     AddComponent(ComponentType) {
+        if(!ComponentType) throw ComponentType;
+
         if (ComponentType.prototype && ComponentType == ComponentType.prototype.constructor) {
             let newComponent = new ComponentType();
             newComponent.m_GameObject = this;
             newComponent.Start();
             this.m_Components.push(newComponent);
         }else{
+            console.trace(ComponentType);
             ComponentType.m_GameObject = this;
             ComponentType.Start();
             this.m_Components.push(ComponentType);
@@ -79,6 +82,8 @@ module.exports = class GameObject {
         for (let component of this.m_Components) {
             component.Update();
         }
+
+        return;
 
         if(!this.m_Active) return;
 

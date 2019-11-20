@@ -68,12 +68,15 @@ module.exports = class CanvasApi {
      * @param {CanvasContext} context 
      */
     static DrawPixel(context, position, color) {
-        if (position.x > context.Width || position.x < 0 || position.y > context.Height || position.y < 0) return;
+        if (position.x > context.Width - 2 || position.x < 0 || position.y > context.Height || position.y < 0) return;
         let i = (Math.round(position.y) * Math.floor(context.Width) + Math.round(position.x));
         if (position.z <= this.s_zBuffer[i]) {
             return;
         }
-        else this.s_zBuffer[i] = Math.round(position.z);
+        else{
+            this.s_zBuffer[i] = Math.round(position.z);
+        } 
+
 
         const d = context.RendererBuffer.data;
         i *= 4;
@@ -345,16 +348,17 @@ module.exports = class CanvasApi {
         const transformation = context.GetLocation(1);
         const window = context.GetLocation(2);
         let test = [];
-        let lightPos = new Vec3(100, 0, 100).multiplyMat4(camera.projectionViewMatrix);
+        let lightPos = new Vec3(0, 0, 100).multiplyMat4(camera.m_Transformation.multiplyMat4(camera.projectionViewMatrix));
         lightPos.x = (lightPos.x / 2 + 0.5) * context.Width;
         lightPos.y = (-lightPos.y / 2 + 0.5) * context.Height;
 
-        let observatorPos = camera.m_Position.multiplyMat4(camera.projectionViewMatrix);
+        let observatorPos = camera.m_Position.multiplyMat4(camera.m_Transformation.multiplyMat4(camera.projectionViewMatrix));
         observatorPos.x = (observatorPos.x / 2 + 0.5) * context.Width;
         observatorPos.y = (-observatorPos.y / 2 + 0.5) * context.Height;
 
         context.Shader.UploadData('lightPos', lightPos);
         context.Shader.UploadData('observatorPos', observatorPos);
+
         for (let triangle of triangles) {
             v1 = new Vec3((vertexBuffer[triangle[0] * n + offset]), (vertexBuffer[triangle[0] * n + 1 + offset]), vertexBuffer[triangle[0] * n + 2 + offset]);
             v2 = new Vec3((vertexBuffer[triangle[1] * n + offset]), (vertexBuffer[triangle[1] * n + 1 + offset]), vertexBuffer[triangle[1] * n + 2 + offset]);
@@ -381,6 +385,7 @@ module.exports = class CanvasApi {
 
             v3.x = (v3.x / 2 + 0.5) * context.Width;
             v3.y = (-v3.y / 2 + 0.5) * context.Height;
+
 
             test.push(new Triangle(v1, v2, v3, color));
             //this.DrawTriangle(context, v1, v2, v3, color);
@@ -744,11 +749,11 @@ module.exports = class CanvasApi {
         const camera = context.GetLocation(0);
         const transformation = context.GetLocation(1);
 
-        let lightPos = new Vec3(100, 0, 100).multiplyMat4(camera.projectionViewMatrix);
+        let lightPos = new Vec3(0, 0, 100).multiplyMat4(camera.m_Transformation.multiplyMat4(camera.projectionViewMatrix));
         lightPos.x = (lightPos.x / 2 + 0.5) * context.Width;
         lightPos.y = (-lightPos.y / 2 + 0.5) * context.Height;
 
-        let observatorPos = camera.m_Position.multiplyMat4(camera.projectionViewMatrix);
+        let observatorPos = camera.m_Position.multiplyMat4(camera.m_Transformation.multiplyMat4(camera.projectionViewMatrix));
         observatorPos.x = (observatorPos.x / 2 + 0.5) * context.Width;
         observatorPos.y = (-observatorPos.y / 2 + 0.5) * context.Height;
 
@@ -761,7 +766,7 @@ module.exports = class CanvasApi {
             let color = new Vec4(vertexBuffer[circle * n + 4 + offset],vertexBuffer[circle * n + 5 + offset], vertexBuffer[circle * n + 6 + offset], vertexBuffer[circle * n + 7 + offset])
             if (transformation) v1 = v1.multiplyMat4(transformation);
 
-            v1 = v1.multiplyMat4(camera.m_Transformation.multiplyMat4(camera.view));
+            v1 = v1.multiplyMat4(camera.m_Transformation.multiplyMat4(camera.projectionViewMatrix));
 
             v1.x = (v1.x / 2 + 0.5) * context.Width;
             v1.y = (-v1.y / 2 + 0.5) * context.Height;

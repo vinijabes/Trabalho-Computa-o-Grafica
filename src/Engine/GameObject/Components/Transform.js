@@ -1,8 +1,7 @@
 const MonoBehavior = require('../MonoBehavior');
-const Math = require('../../../Mat');
-const { Vec3, Mat4 } = Math;
+const { Vec3, Mat4 } = require('../../../Mat');
 
-module.exports = class Transform extends MonoBehavior {
+class Transform extends MonoBehavior {
     /**@type {Vec3} */
     m_Position;
 
@@ -39,6 +38,7 @@ module.exports = class Transform extends MonoBehavior {
         this.m_Rotation = Mat4.Identity();
         this.m_LocalRotation = Mat4.Identity();
         this.m_LocalEulerAngles = new Vec3(0, 0, 0);
+        this.m_TransformationMatrix = Mat4.Identity();
         this._BuildTransformationMatrix();
     }
 
@@ -50,12 +50,12 @@ module.exports = class Transform extends MonoBehavior {
     }
 
     _BuildTransformationMatrix() {
-        this.m_TransformationMatrix = Math.Mat4.Scale(this.m_Scale.x, this.m_Scale.y, this.m_Scale.z, this.m_Scale.w).multiplyMat4(this.m_Rotation).multiplyMat4(Math.Mat4.Translation(this.m_Position.x, this.m_Position.y, this.m_Position.z));
+        this.m_TransformationMatrix = Mat4.Scale(this.m_Scale.x, this.m_Scale.y, this.m_Scale.z, this.m_Scale.w).multiplyMat4(this.m_Rotation).multiplyMat4(Mat4.Translation(this.m_Position.x, this.m_Position.y, this.m_Position.z));
     }
 
-    get Up() { return Math.Vec3.Up().multiplyMat4(this.m_Rotation).Normalize(); }
-    get Right() { return Math.Vec3.Right().multiplyMat4(this.m_Rotation).Normalize(); }
-    get Forward() { return Math.Vec3.Forward().multiplyMat4(this.m_Rotation).Normalize(); }
+    get Up() { return Vec3.Up().multiplyMat4(this.m_Rotation).Normalize(); }
+    get Right() { return Vec3.Right().multiplyMat4(this.m_Rotation).Normalize(); }
+    get Forward() { return Vec3.Forward().multiplyMat4(this.m_Rotation).Normalize(); }
     get Transformation() { return this.m_TransformationMatrix; }
 
     Rotate(xAngle, yAngle, zAngle, relativeTo) {
@@ -64,9 +64,9 @@ module.exports = class Transform extends MonoBehavior {
         this.m_LocalEulerAngles.y += yAngle;
         this.m_LocalEulerAngles.z += zAngle;
 
-        const X1 = Math.Mat4.RotationX(this.m_LocalEulerAngles.x);
-        const Z2 = Math.Mat4.RotationZ(this.m_LocalEulerAngles.y);
-        const X3 = Math.Mat4.RotationX(this.m_LocalEulerAngles.z);
+        const X1 = Mat4.RotationX(this.m_LocalEulerAngles.x);
+        const Z2 = Mat4.RotationZ(this.m_LocalEulerAngles.y);
+        const X3 = Mat4.RotationX(this.m_LocalEulerAngles.z);
 
         const RotationMatrix = X1.multiplyMat4(Z2).multiplyMat4(X3);
         this.m_LocalRotation = RotationMatrix;
@@ -86,3 +86,5 @@ module.exports = class Transform extends MonoBehavior {
         this.m_Scale.z *= x/global; 
     }
 }
+
+module.exports = Transform;
