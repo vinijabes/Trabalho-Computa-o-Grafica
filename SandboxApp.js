@@ -41,26 +41,26 @@ shader.Compile((ava, location) => {
 
   let cosTeta = ((N.Dot(L)) / (N.Norm() * L.Norm()));
   let cosAlpha = (R.Dot(S)) / (R.Norm() * S.Norm());
-  if(cosTeta < 0 || cosAlpha < 0) cosAlpha = 0;
+  if (cosTeta < 0 || cosAlpha < 0) cosAlpha = 0;
 
-  let d = Vec3.Sub(location.lightPos, ava.position).Norm() / (Math.sqrt(ava.width**2 + ava.height**2)/8);
+  let d = Vec3.Sub(location.lightPos, ava.position).Norm() / (Math.sqrt(ava.width ** 2 + ava.height ** 2) / 8);
   let k = 0.3;
 
 
-  if(!location.phong){
+  if (!location.phong) {
     ava.color = new Vec4(
-        Vec3.Add(
-            Vec3.Mult(ava.color, 0.26),
-            ava.color.Mult(location.Kd * cosTeta))
-        , 1.0);
-  }else{
+      Vec3.Add(
+        Vec3.Mult(ava.color, 0.26),
+        ava.color.Mult(location.Kd * cosTeta))
+      , 1.0);
+  } else {
     ava.color = new Vec4(Vec3.Mult(ava.color, 0.2 + 1.4 * (location.Kd * cosTeta + location.Ks * Math.pow(cosAlpha, location.n)) / (k + d)), 1.0);
   }
 });
 
 
-  let multipleLightPointsShader = new Shader();
-  multipleLightPointsShader.Compile("let N = location.normal; let L = this.Vec3.Sub(location.lightPos, ava.position).Normalize(); let R = (N.Clone().Mult(2 * N.Dot(L))).Sub(L).Normalize(); let S = this.Vec3.Sub(location.observatorPos, ava.position).Normalize(); let cosTeta = ((N.Dot(L)) / (N.Norm() * L.Norm())); let cosAlpha = (R.Dot(S)) / (R.Norm() * S.Norm()); if(cosAlpha < 0) cosAlpha = 0; let d = this.Vec3.Sub(location.lightPos, ava.position).Norm() / (Math.sqrt(ava.width**2 + ava.height**2)/8); let k = 0.3; ava.color = new this.Vec4(this.Vec3.Mult(ava.color, 0.2 + 1.4 * (location.Kd * cosTeta + location.Ks * Math.pow(cosAlpha, location.n)) / (k + d)), 1.0);");
+let multipleLightPointsShader = new Shader();
+multipleLightPointsShader.Compile("let N = location.normal; let L = this.Vec3.Sub(location.lightPos, ava.position).Normalize(); let R = (N.Clone().Mult(2 * N.Dot(L))).Sub(L).Normalize(); let S = this.Vec3.Sub(location.observatorPos, ava.position).Normalize(); let cosTeta = ((N.Dot(L)) / (N.Norm() * L.Norm())); let cosAlpha = (R.Dot(S)) / (R.Norm() * S.Norm()); if(cosAlpha < 0) cosAlpha = 0; let d = this.Vec3.Sub(location.lightPos, ava.position).Norm() / (Math.sqrt(ava.width**2 + ava.height**2)/8); let k = 0.3; ava.color = new this.Vec4(this.Vec3.Mult(ava.color, 0.2 + 1.4 * (location.Kd * cosTeta + location.Ks * Math.pow(cosAlpha, location.n)) / (k + d)), 1.0);");
 
 let sphere = new GO();
 sphere.m_Material.m_Shader = shader;
@@ -93,7 +93,7 @@ let light = new GO();
 light.AddComponent(SphereRenderer);
 light.GetComponent(SphereRenderer).Radius = 5;
 light.GetComponent(SphereRenderer).Color = new Vec4(1, 1, 1, 1);
-light.Transform.Translate(new Vec3(100, 0, 100));
+//light.Transform.Translate(new Vec3(100, 0, 100));
 light.SetActive(false);
 
 const verticesPlano =
@@ -174,13 +174,21 @@ TestObject.GetComponent(MeshRenderer).m_Mesh.Index = [
   3, 8, 9,
 ]
 
+//console.log(Mat4.Frustum(-1.0, 1.0, 1.0, -1.0, -1.0, 1.0));
+
 TestObject.Transform.Scale(1, 1, 1, 1 / 4);
 
 let camera = new Camera();
-let projection = Mat4.Ortho();
+let projection = Mat4.Frustum(-1.0, 1.0, -1.0, 1.0, -100.0, 100);//Mat4.Ortho();//
 
 camera.SetProjection(projection);
 camera.SetView(Mat4.Viewport(-CanvasContext.Width / 2, CanvasContext.Width / 2, -CanvasContext.Height / 2, CanvasContext.Height / 2, -1, 1));
+
+console.log(camera.SetLookAt(new Vec3(0, 30, -50)));
+console.log(camera.projectionViewMatrix);
+console.log(new Vec3(10, 10, 1).multiplyMat4(camera.projectionViewMatrix));
+//console.log(new Vec3(10, 10, 10).multiplyMat4(camera.LookAt(new Vec3(0, 0, 0)).multiplyMat4(camera.projectionViewMatrix)));
+
 Canvas.CanvasApi.SetLocation(CanvasContext, 0, camera);
 Canvas.CanvasApi.SetLocation(CanvasContext, 2, new Window(new Vec2(-1, -1), new Vec2(2, 2)));
 
@@ -231,10 +239,10 @@ DrawLineButton.onClick = () => { selectedOption = 1; }
 DrawingMenu.m_DomNode.style.marginTop = '8px';
 
 let checkMenu = new UI.Menu(null);
-checkMenu.m_DomNode.style.flexDirection='row';
-checkMenu.m_DomNode.style.justifyContent='start';
-checkMenu.m_DomNode.style.marginTop='8px';
-checkMenu.m_DomNode.style.marginLeft='12px';
+checkMenu.m_DomNode.style.flexDirection = 'row';
+checkMenu.m_DomNode.style.justifyContent = 'start';
+checkMenu.m_DomNode.style.marginTop = '8px';
+checkMenu.m_DomNode.style.marginLeft = '12px';
 let Checkbox = new UI.Checkbox(null, true);
 Checkbox.m_DomNode.style.marginTop = 'auto';
 Checkbox.m_DomNode.style.marginBottom = 'auto';
@@ -284,7 +292,7 @@ var update = (delta) => {
 
   shader.UploadData('phong', Checkbox.Value());
   //test.Update();
-  
+
   sphere.Update();
   sphere2.Update();
   plane.Update();
@@ -383,6 +391,7 @@ c.onmouseup = (e) => {
 }
 
 c.onmousemove = (e) => {
+  return;
   if (settingWindow && initial.x && initial.y) {
     let v3I = new Vec3(initial.x, initial.y, 0);
     let v3F = new Vec3(e.offsetX - CanvasContext.Width / 2, -(e.offsetY - CanvasContext.Height / 2), 0);
@@ -425,6 +434,7 @@ c.onmousemove = (e) => {
 }
 
 c.onmouseleave = (e) => {
+  return;
   if (settingWindow && initial.x && initial.y) {
     let v3I = new Vec3(initial.x, initial.y, 0);
     let v3F = new Vec3(e.offsetX - CanvasContext.Width / 2, -(e.offsetY - CanvasContext.Height / 2), 0);

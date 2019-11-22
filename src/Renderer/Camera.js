@@ -7,6 +7,7 @@ const { Vec3, Mat4 } = require('../Mat/index');
 module.exports = class Camera {
     projection = new Mat4();
     view = Mat4.Identity();
+    lookAt = Mat4.Identity();
     m_Transformation = Mat4.Identity();
 
     m_RotationSpeed = 30.0;
@@ -30,30 +31,59 @@ module.exports = class Camera {
         this.UpdateProjectionViewMatrix();
     }
 
+    SetLookAt(target) {
+        this.lookAt = this.LookAt(target);
+        this.UpdateProjectionViewMatrix();
+    }
+
+    LookAt(target) {
+        let cameraDirection = Vec3.Sub(this.m_Transform.m_Position, target).Normalize();
+        let Up = new Vec3(0, 1, 0);
+        let cameraRight = Up.Cross(cameraDirection).Normalize();
+        let cameraUp = cameraDirection.Cross(cameraRight);
+
+        console.log(cameraDirection, Up, cameraRight, cameraUp);
+
+        let lookAtMatrix = new Mat4();
+        lookAtMatrix.elements[0][0] = cameraRight.x;
+        lookAtMatrix.elements[1][0] = cameraRight.y;
+        lookAtMatrix.elements[2][0] = cameraRight.z;
+        lookAtMatrix.elements[0][1] = cameraUp.x;
+        lookAtMatrix.elements[1][1] = cameraUp.y;
+        lookAtMatrix.elements[2][1] = cameraUp.z;
+        lookAtMatrix.elements[0][2] = cameraDirection.x;
+        lookAtMatrix.elements[1][2] = cameraDirection.y;
+        lookAtMatrix.elements[2][2] = cameraDirection.z;
+        lookAtMatrix.elements[3][3] = 1;
+        let translation = Mat4.Translation(-this.m_Transform.m_Position.x, -this.m_Transform.m_Position.y, -this.m_Transform.m_Position.z);
+
+        return lookAtMatrix.multiplyMat4(translation);
+    }
+
     UpdateProjectionViewMatrix() {
-        this.projectionViewMatrix = this.projection.multiplyMat4(this.view);
+        this.projectionViewMatrix = this.projection.multiplyMat4(this.view.multiplyMat4(this.lookAt));
     }
 
     Update(delta) {
         //console.log(this.m_Position);
         if (InputController.Instance().IsKeyDown(37)) {
-            this.m_Transform.Translate(new Vec3(this.m_TranslationSpeed * delta, 0, 0));            
-            this.m_Position.x -= this.m_TranslationSpeed * delta;            
+            this.m_Transform.Translate(new Vec3(this.m_TranslationSpeed * delta, 0, 0));
+            this.m_Position.x -= this.m_TranslationSpeed * delta;
         }
 
         if (InputController.Instance().IsKeyDown(39)) {
-            this.m_Transform.Translate(new Vec3(-this.m_TranslationSpeed * delta, 0, 0));            
-             this.m_Position.x += this.m_TranslationSpeed * delta;
+            this.m_Transform.Translate(new Vec3(-this.m_TranslationSpeed * delta, 0, 0));
+            this.m_Position.x += this.m_TranslationSpeed * delta;
         }
 
         if (InputController.Instance().IsKeyDown(38)) {
-            this.m_Transform.Translate(new Vec3(0, -this.m_TranslationSpeed * delta, 0));            
+            this.m_Transform.Translate(new Vec3(0, -this.m_TranslationSpeed * delta, 0));
             this.m_Position.y += this.m_TranslationSpeed * delta;
         }
 
         if (InputController.Instance().IsKeyDown(40)) {
-            this.m_Transform.Translate(new Vec3(0, this.m_TranslationSpeed * delta, 0));            
-            this.m_Position.y -= this.m_TranslationSpeed * delta;            
+            this.m_Transform.Translate(new Vec3(0, this.m_TranslationSpeed * delta, 0));
+            this.m_Position.y -= this.m_TranslationSpeed * delta;
         }
 
         if (InputController.Instance().IsKeyDown(65)) {
@@ -76,6 +106,16 @@ module.exports = class Camera {
             //this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationY(-this.m_RotationSpeed * delta));
         }
 
+        if (InputController.Instance().IsKeyDown(17)) {
+            this.m_Transform.Translate(new Vec3(0, 0, -this.m_TranslationSpeed * delta));
+        }
+
+        if (InputController.Instance().IsKeyDown(32)) {
+            this.m_Transform.Translate(new Vec3(0, 0, this.m_TranslationSpeed * delta));
+        }
+
+        if(this.following) this.SetLookAt(this.following.Transform.m_Position);
+
         this.m_Transform.Update();
         this.m_Transformation = this.m_Transform.m_TransformationMatrix;
     }
@@ -88,6 +128,10 @@ module.exports = class Camera {
         let p = point.multiplyMat4(this.projectionViewMatrix);
         p.x = (p.x / 2 + 0.5) * CanvasApi.s_Context.Width;
         p.y = (-p.y / 2 + 0.5) * CanvasApi.s_Context.Height;
+    }
+
+    Follow(GameObject){
+        this.following = GameObject;
     }
 
     get unProject() { return new Mat4(Utils.invertMatrix(this.projection.elements)); }

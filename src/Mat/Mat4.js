@@ -52,6 +52,21 @@ class Mat4 {
         return mat4;
     }
 
+    static Frustum(left, right, bottom, top, near, far) {
+        let mat4 = this.Identity();
+        mat4.elements[0][0] = 2 * near / (right - left);
+        mat4.elements[1][1] = 2 * near / (top - bottom);
+        mat4.elements[2][2] = -(far + near) / (far - near);
+        mat4.elements[2][0] = (right + left) / (right - left);
+        mat4.elements[2][1] = (top + bottom) / (top - bottom);
+        mat4.elements[2][3] = -1;
+        mat4.elements[3][2] = -2 * far * near / (far - near);
+        mat4.elements[3][3] = 0;
+
+        console.log(mat4);
+        return mat4;
+    }
+
     static RotationZ(angle, x = 0, y = 0, z = 0) {
         angle = angle * Math.PI / 180;
         let mat4 = this.Identity();
@@ -79,7 +94,7 @@ class Mat4 {
         mat4.elements[2][1] = -Math.sin(angle);
         mat4.elements[1][2] = Math.sin(angle);
         mat4.elements[2][2] = Math.cos(angle);
-        
+
         return Mat4.Translation(-x, -y, -z).multiplyMat4(mat4).multiplyMat4(Mat4.Translation(x, y, z));
     }
 
@@ -145,10 +160,10 @@ class Mat4 {
 
         let result = new Mat4();
 
-        for(let i = 0; i < 4; i++){
-            for(let j = 0; j < 4; j++){
+        for (let i = 0; i < 4; i++) {
+            for (let j = 0; j < 4; j++) {
                 for (let k = 0; k < 4; k++) {
-                    result.elements[i][j] += Math.round((elements1[i][k] * elements2[k][j])*100000)/100000;
+                    result.elements[i][j] += Math.round((elements1[i][k] * elements2[k][j]) * 100000) / 100000;
                 }
             }
         }
