@@ -46,7 +46,7 @@ class Mat4 {
 
     static Cabinet() {
         let mat4 = this.Identity();
-        mat4.elements[2][2] = 0;
+        mat4.elements[2][2] = 1;
         mat4.elements[2][0] = Math.cos(63.4 * Math.PI / 180) / 2;
         mat4.elements[2][1] = Math.sin(63.4 * Math.PI / 180) / 2;
         return mat4;

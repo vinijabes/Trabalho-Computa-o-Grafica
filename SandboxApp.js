@@ -46,7 +46,6 @@ shader.Compile((ava, location) => {
   let d = Vec3.Sub(location.lightPos, ava.position).Norm() / (Math.sqrt(ava.width ** 2 + ava.height ** 2) / 8);
   let k = 0.3;
 
-
   if (!location.phong) {
     ava.color = new Vec4(
       Vec3.Add(
@@ -93,7 +92,7 @@ let light = new GO();
 light.AddComponent(SphereRenderer);
 light.GetComponent(SphereRenderer).Radius = 5;
 light.GetComponent(SphereRenderer).Color = new Vec4(1, 1, 1, 1);
-//light.Transform.Translate(new Vec3(100, 0, 100));
+light.Transform.Translate(new Vec3(100, 0, 100));
 light.SetActive(false);
 
 const verticesPlano =
@@ -179,15 +178,15 @@ TestObject.GetComponent(MeshRenderer).m_Mesh.Index = [
 TestObject.Transform.Scale(1, 1, 1, 1 / 4);
 
 let camera = new Camera();
-let projection = Mat4.Frustum(-1.0, 1.0, -1.0, 1.0, -100.0, 100);//Mat4.Ortho();//
+let projection = Mat4.Frustum(-1.0, 1.0, -1.0, 1.0, 50, 100);//Mat4.Ortho();//
 
 camera.SetProjection(projection);
 camera.SetView(Mat4.Viewport(-CanvasContext.Width / 2, CanvasContext.Width / 2, -CanvasContext.Height / 2, CanvasContext.Height / 2, -1, 1));
+camera.Follow(plane);
 
-console.log(camera.SetLookAt(new Vec3(0, 30, -50)));
-console.log(camera.projectionViewMatrix);
-console.log(new Vec3(10, 10, 1).multiplyMat4(camera.projectionViewMatrix));
-//console.log(new Vec3(10, 10, 10).multiplyMat4(camera.LookAt(new Vec3(0, 0, 0)).multiplyMat4(camera.projectionViewMatrix)));
+
+console.log(new Vec3(10, 10, 10).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(0, 0, 0).multiplyMat4(camera.projectionViewMatrix));
 
 Canvas.CanvasApi.SetLocation(CanvasContext, 0, camera);
 Canvas.CanvasApi.SetLocation(CanvasContext, 2, new Window(new Vec2(-1, -1), new Vec2(2, 2)));
