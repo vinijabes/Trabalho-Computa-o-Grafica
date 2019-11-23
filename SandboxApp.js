@@ -178,15 +178,86 @@ TestObject.GetComponent(MeshRenderer).m_Mesh.Index = [
 TestObject.Transform.Scale(1, 1, 1, 1 / 4);
 
 let camera = new Camera();
-let projection = Mat4.Frustum(-1.0, 1.0, -1.0, 1.0, 50, 100);//Mat4.Ortho();//
+let projection = Mat4.Frustum(-0.5, 0.5, -0.5, 0.5, 1, 10);//Mat4.Ortho();//
 
 camera.SetProjection(projection);
-camera.SetView(Mat4.Viewport(-CanvasContext.Width / 2, CanvasContext.Width / 2, -CanvasContext.Height / 2, CanvasContext.Height / 2, -1, 1));
+//camera.SetView(Mat4.Viewport(-CanvasContext.Width / 2, CanvasContext.Width / 2, -CanvasContext.Height / 2, CanvasContext.Height / 2, -1, 1));
 camera.Follow(plane);
 
+let viewport = Mat4.Viewport(-CanvasContext.Width / 2, CanvasContext.Width / 2, -CanvasContext.Height / 2, CanvasContext.Height / 2, -1, 1);
 
-console.log(new Vec3(10, 10, 10).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(0, 0, 0).multiplyMat4(camera.projectionViewMatrix));
+console.groupCollapsed("FRONT CAMERA");
+console.log(new Vec3(0.5, 0.5, 10.1).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(0.5, 0, 10).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(0.5, 0, 1).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(0.5, 0, 0.9).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(2.0, 0, 0.5).multiplyMat4(camera.projectionViewMatrix));
+console.groupEnd("FRONT CAMERA");
+
+console.groupCollapsed("BEHIND CAMERA");
+camera.SetLookAt(new Vec3(0, 0, -1));
+
+console.log(new Vec3(0.5, 0.5, 10.1).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(0.5, 0, 10).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(0.5, 0, 1).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(0.5, 0, 0.9).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(2.0, 0, 0.5).multiplyMat4(camera.projectionViewMatrix));
+console.groupEnd("BEHIND CAMERA");
+
+console.groupCollapsed("BEHIND CAMERA");
+camera.m_Transform.Translate(new Vec3(0, 0, 10));
+camera.SetLookAt(new Vec3(0, 0, 11));
+
+console.log(new Vec3(0.5, 0.5, 10.1).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(0.5, 0, 10).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(0.5, 0, 1).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(0.5, 0, 0.9).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(2.0, 0, 0.5).multiplyMat4(camera.projectionViewMatrix));
+console.groupEnd("BEHIND CAMERA");
+
+console.groupCollapsed("LEFT CAMERA");
+camera.SetLookAt(new Vec3(1, 0, 0));
+camera.m_Transform.Translate(new Vec3(0, 0, -10));
+console.log(new Vec3(0.5, 0.5, 10.1).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(0.5, 0, 10).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(0.5, 0, 1).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(0.5, 0, 0.9).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(2.0, 0, 0.5).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(2.0, 0, 0.5).multiplyMat4(camera.LookAt(new Vec3(1, 0, 0))));
+console.log(camera.LookAt(new Vec3(1, 0, 0)));
+console.groupEnd("LEFT CAMERA");
+
+console.groupCollapsed("RIGHT CAMERA");
+camera.SetLookAt(new Vec3(-1, 0, 0));
+
+console.log(new Vec3(0.5, 0.5, 10.1).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(0.5, 0, 10).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(0.5, 0, 1).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(0.5, 0, 0.9).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(2.0, 0, 0.5).multiplyMat4(camera.projectionViewMatrix));
+console.groupEnd("RIGHT CAMERA");
+
+console.groupCollapsed("TOP CAMERA");
+camera.SetLookAt(new Vec3(0, 1, 0));
+
+console.log(new Vec3(0.5, 0.5, 10.1).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(0.5, 0, 10).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(0.5, 0, 1).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(0.5, 0, 0.9).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(2.0, 0, 0.5).multiplyMat4(camera.projectionViewMatrix));
+console.groupEnd("TOP CAMERA");
+
+console.groupCollapsed("BOTTOM CAMERA");
+camera.SetLookAt(new Vec3(0, -1, 0));
+
+console.log(new Vec3(0.5, 0.5, 10.1).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(0.5, 0, 10).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(0.5, 0, 1).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(0.5, 0, 0.9).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(2.0, 0, 0.5).multiplyMat4(camera.projectionViewMatrix));
+console.groupEnd("BOTTOM CAMERA");
+
+return;
 
 Canvas.CanvasApi.SetLocation(CanvasContext, 0, camera);
 Canvas.CanvasApi.SetLocation(CanvasContext, 2, new Window(new Vec2(-1, -1), new Vec2(2, 2)));

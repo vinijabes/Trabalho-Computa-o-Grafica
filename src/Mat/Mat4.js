@@ -57,13 +57,12 @@ class Mat4 {
         mat4.elements[0][0] = 2 * near / (right - left);
         mat4.elements[1][1] = 2 * near / (top - bottom);
         mat4.elements[2][2] = -(far + near) / (far - near);
+        mat4.elements[3][3] = 0;
         mat4.elements[2][0] = (right + left) / (right - left);
         mat4.elements[2][1] = (top + bottom) / (top - bottom);
         mat4.elements[2][3] = -1;
         mat4.elements[3][2] = -2 * far * near / (far - near);
-        mat4.elements[3][3] = 0;
-
-        console.log(mat4);
+        
         return mat4;
     }
 

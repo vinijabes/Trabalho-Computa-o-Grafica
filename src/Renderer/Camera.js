@@ -22,9 +22,9 @@ module.exports = class Camera {
     constructor() {
         this.m_Transform = new Transform();
         this.m_Transform.Start();
-        this.m_Transform.Translate(new Vec3(0, 0, 50));
         this.m_Plane = new Plane();
         this.m_Plane.m_Normal = new Vec3(0, 0, 1);
+        this.SetLookAt(new Vec3(0, 0, 1));
     }
 
     SetProjection(projectionMatrix) {
@@ -62,13 +62,13 @@ module.exports = class Camera {
         let translation = Mat4.Translation(-this.m_Transform.m_Position.x, -this.m_Transform.m_Position.y, -this.m_Transform.m_Position.z).multiplyMat4(this.m_Transform.m_Rotation);
 
         this.m_Plane.m_Normal = Vec3.Mult(cameraDirection, -1);
-        this.m_Plane.m_Distance = -50;
+        this.m_Plane.m_Distance = 0;
 
         return lookAtMatrix.multiplyMat4(translation);
     }
 
     UpdateProjectionViewMatrix() {
-        this.projectionViewMatrix = this.projection.multiplyMat4(this.lookAt.multiplyMat4(this.view));
+        this.projectionViewMatrix = this.lookAt.multiplyMat4(this.projection.multiplyMat4(this.view));
     }
 
     Update(delta) {
