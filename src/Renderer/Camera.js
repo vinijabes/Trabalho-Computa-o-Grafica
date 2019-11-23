@@ -39,6 +39,7 @@ module.exports = class Camera {
 
     SetLookAt(target) {
         this.lookAt = this.LookAt(target);
+        console.log(this.lookAt);
         this.UpdateProjectionViewMatrix();
     }
 
@@ -119,7 +120,7 @@ module.exports = class Camera {
         }
 
         if (this.following) this.SetLookAt(this.following.Transform.m_Position);
-        else this.SetLookAt(new Vec3(this.m_Transform.m_Position.x, this.m_Transform.m_Position.y, this.m_Transform.m_Position.z - 1));
+        else this.SetLookAt(new Vec3(0, 0, 0));
 
         this.m_Transform.Update();
         this.m_Transformation = this.m_Transform.m_TransformationMatrix;

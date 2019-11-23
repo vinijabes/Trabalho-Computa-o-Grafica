@@ -44,9 +44,8 @@ shader.Compile((ava, location) => {
   let cosAlpha = (R.Dot(S)) / (R.Norm() * S.Norm());
   if (cosTeta < 0 || cosAlpha < 0) cosAlpha = 0;
 
-  let d = Vec3.Sub(location.lightPos, ava.position).Norm() / (Math.sqrt(ava.width ** 2 + ava.height ** 2) / 8);
-  //console.log(location.lightPos, ava.position);
-  let k = 0.3;
+  let d = Vec3.Sub(location.lightPos, ava.position).Norm() / (Math.sqrt(ava.width ** 2 + ava.height ** 2) / 1);
+  let k = 0.6;
 
   if (!location.phong) {
     ava.color = new Vec4(
@@ -55,7 +54,7 @@ shader.Compile((ava, location) => {
         ava.color.Mult(location.Kd * cosTeta))
       , 1.0);
   } else {
-    ava.color = new Vec4(Vec3.Mult(ava.color, 0.2 + 1.4 * (location.Kd * cosTeta + location.Ks * Math.pow(cosAlpha, location.n)) / (k + d)), 1.0);
+    ava.color = new Vec4(Vec3.Mult(ava.color, 0.2 + 1 * (location.Kd * cosTeta + location.Ks * Math.pow(cosAlpha, location.n)) / (k + d)), 1.0);
   }
 });
 
@@ -180,7 +179,7 @@ TestObject.GetComponent(MeshRenderer).m_Mesh.Index = [
 TestObject.Transform.Scale(1, 1, 1, 1 / 4);
 
 let camera = new Camera();
-let projection = Mat4.Frustum(-1.0, 1.0, -1.0, 1.0, 30, 100);//Mat4.Ortho();//
+let projection = Mat4.Frustum(-1.0, 1.0, -1.0, 1.0, 20, 200);//Mat4.Ortho();//
 
 camera.SetProjection(projection);
 camera.SetView(Mat4.Viewport(-CanvasContext.Width / 2, CanvasContext.Width / 2, -CanvasContext.Height / 2, CanvasContext.Height / 2, -1, 1));
@@ -369,7 +368,7 @@ var update = (delta) => {
   //test.Update();
 
   sphere.Update();
-  sphere2.Update();
+  //sphere2.Update();
   //plane.Update();
   //light.Update();
   //TestObject.Update();
@@ -416,7 +415,6 @@ var frame = function (now) {
     CanvasContext.RawContext.clearRect(0, 0, CanvasContext.Width, CanvasContext.Height);
     //Canvas.CanvasApi.DrawCircle(CanvasContext, { x: CanvasContext.Width / 2, y: CanvasContext.Height / 2 }, new Vec3(0, 0, 1), 2, { x: 0, y: 0, z: 0, w: 1.0 })
     render();
-    return;
   }
   requestAnimationFrame(frame, CanvasContext.RawContext);
 };

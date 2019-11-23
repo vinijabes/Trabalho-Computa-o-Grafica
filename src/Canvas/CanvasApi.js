@@ -3,6 +3,7 @@ const { Vec2, Vec3, Vec4, Mat3, Mat4 } = require('../Mat');
 const { Shader, VertexArray, Window, Camera } = require('../Renderer');
 const { BufferType, DrawMode } = require('../Constants');
 const Plane = require('../Engine/GameObject/Classes/Plane');
+const Util = require('../Util');
 const Triangle = require('../Engine/GameObject/Classes/Triangle');
 
 var angleX = 0;
@@ -68,9 +69,6 @@ module.exports = class CanvasApi {
      * @param {CanvasContext} context 
      */
     static DrawPixel(context, position, color) {
-        position.x = (position.x / 2 + 0.5) * context.Width;
-        position.y = (-position.y / 2 + 0.5) * context.Height;
-
         if (position.x > context.Width - 2 || position.x < 0 || position.y > context.Height || position.y < 0) return;
         let i = (Math.round(position.y) * Math.floor(context.Width) + Math.round(position.x));
         if (position.z <= this.s_zBuffer[i]) {
@@ -171,51 +169,51 @@ module.exports = class CanvasApi {
      * @param {number} y 
      */
     static DrawSphereSimetry(context, sphereCenter, center, x, y, z, color) {
-        // const window = context.GetLocation(2);
-        // let transformation = context.GetLocation(1);
-        // if (!transformation) transformation = Mat4.Identity();
+        let view = new Mat4(Util.invertMatrix(Mat4.Scale(0.5, 0.5, 1, 1).multiplyMat4(Mat4.Translation(0.5, 0.5, 0).multiplyMat4(Mat4.Scale(context.Width, context.Height, -100, 1))).elements));
         let transformation = Mat4.Identity();
         let camera = context.GetLocation(0);
 
-        let data = { width: context.Width, height: context.Height, position: new Vec3(center.x + x, center.y + y, center.z), color: new Vec4(color.x, color.y, color.z, color.w) };
-        context.Shader.UploadData('normal', Vec3.Sub(data.position, sphereCenter).Normalize());
-        context.Shader.Execute(data);
-        this.DrawPixel(context, data.position.multiplyMat4(transformation), data.color);
+        sphereCenter = sphereCenter.multiplyMat4(view.multiplyMat4(camera.unProject));
 
-        data = { width: context.Width, height: context.Height, position: new Vec3(center.x - x, center.y + y, center.z), color: new Vec4(color.x, color.y, color.z, color.w) };
+        let data = { width: context.Width, height: context.Height, position: new Vec3(center.x + x, center.y + y, center.z).multiplyMat4(view.multiplyMat4(camera.unProject)), color: new Vec4(color.x, color.y, color.z, color.w) };
         context.Shader.UploadData('normal', Vec3.Sub(data.position, sphereCenter).Normalize());
         context.Shader.Execute(data);
-        this.DrawPixel(context, data.position.multiplyMat4(transformation), data.color);
+        this.DrawPixel(context, new Vec3(center.x + x, center.y + y, center.z).multiplyMat4(transformation), data.color);
 
-        data = { width: context.Width, height: context.Height, position: new Vec3(center.x + x, center.y - y, center.z), color: new Vec4(color.x, color.y, color.z, color.w) };
+        data = { width: context.Width, height: context.Height, position: new Vec3(center.x - x, center.y + y, center.z).multiplyMat4(view.multiplyMat4(camera.unProject)), color: new Vec4(color.x, color.y, color.z, color.w) };
         context.Shader.UploadData('normal', Vec3.Sub(data.position, sphereCenter).Normalize());
         context.Shader.Execute(data);
-        this.DrawPixel(context, data.position.multiplyMat4(transformation), data.color);
+        this.DrawPixel(context, new Vec3(center.x - x, center.y + y, center.z).multiplyMat4(transformation), data.color);
 
-        data = { width: context.Width, height: context.Height, position: new Vec3(center.x - x, center.y - y, center.z), color: new Vec4(color.x, color.y, color.z, color.w) };
+        data = { width: context.Width, height: context.Height, position: new Vec3(center.x + x, center.y - y, center.z).multiplyMat4(view.multiplyMat4(camera.unProject)), color: new Vec4(color.x, color.y, color.z, color.w) };
         context.Shader.UploadData('normal', Vec3.Sub(data.position, sphereCenter).Normalize());
         context.Shader.Execute(data);
-        this.DrawPixel(context, data.position.multiplyMat4(transformation), data.color);
+        this.DrawPixel(context, new Vec3(center.x + x, center.y - y, center.z).multiplyMat4(transformation), data.color);
 
-        data = { width: context.Width, height: context.Height, position: new Vec3(center.x + y, center.y + x, center.z), color: new Vec4(color.x, color.y, color.z, color.w) };
+        data = { width: context.Width, height: context.Height, position: new Vec3(center.x - x, center.y - y, center.z).multiplyMat4(view.multiplyMat4(camera.unProject)), color: new Vec4(color.x, color.y, color.z, color.w) };
         context.Shader.UploadData('normal', Vec3.Sub(data.position, sphereCenter).Normalize());
         context.Shader.Execute(data);
-        this.DrawPixel(context, data.position.multiplyMat4(transformation), data.color);
+        this.DrawPixel(context, new Vec3(center.x - x, center.y - y, center.z).multiplyMat4(transformation), data.color);
 
-        data = { width: context.Width, height: context.Height, position: new Vec3(center.x - y, center.y + x, center.z), color: new Vec4(color.x, color.y, color.z, color.w) };
+        data = { width: context.Width, height: context.Height, position: new Vec3(center.x + y, center.y + x, center.z).multiplyMat4(view.multiplyMat4(camera.unProject)), color: new Vec4(color.x, color.y, color.z, color.w) };
         context.Shader.UploadData('normal', Vec3.Sub(data.position, sphereCenter).Normalize());
         context.Shader.Execute(data);
-        this.DrawPixel(context, data.position.multiplyMat4(transformation), data.color);
+        this.DrawPixel(context, new Vec3(center.x + y, center.y + x, center.z).multiplyMat4(transformation), data.color);
 
-        data = { width: context.Width, height: context.Height, position: new Vec3(center.x + y, center.y - x, center.z), color: new Vec4(color.x, color.y, color.z, color.w) };
+        data = { width: context.Width, height: context.Height, position: new Vec3(center.x - y, center.y + x, center.z).multiplyMat4(view.multiplyMat4(camera.unProject)), color: new Vec4(color.x, color.y, color.z, color.w) };
         context.Shader.UploadData('normal', Vec3.Sub(data.position, sphereCenter).Normalize());
         context.Shader.Execute(data);
-        this.DrawPixel(context, data.position.multiplyMat4(transformation), data.color);
+        this.DrawPixel(context, new Vec3(center.x - y, center.y + x, center.z).multiplyMat4(transformation), data.color);
 
-        data = { width: context.Width, height: context.Height, position: new Vec3(center.x - y, center.y - x, center.z), color: new Vec4(color.x, color.y, color.z, color.w) };
+        data = { width: context.Width, height: context.Height, position: new Vec3(center.x + y, center.y - x, center.z).multiplyMat4(view.multiplyMat4(camera.unProject)), color: new Vec4(color.x, color.y, color.z, color.w) };
         context.Shader.UploadData('normal', Vec3.Sub(data.position, sphereCenter).Normalize());
         context.Shader.Execute(data);
-        this.DrawPixel(context, data.position.multiplyMat4(transformation), data.color);
+        this.DrawPixel(context, new Vec3(center.x + y, center.y - x, center.z).multiplyMat4(transformation), data.color);
+
+        data = { width: context.Width, height: context.Height, position: new Vec3(center.x - y, center.y - x, center.z).multiplyMat4(view.multiplyMat4(camera.unProject)), color: new Vec4(color.x, color.y, color.z, color.w) };
+        context.Shader.UploadData('normal', Vec3.Sub(data.position, sphereCenter).Normalize());
+        context.Shader.Execute(data);
+        this.DrawPixel(context, new Vec3(center.x - y, center.y - x, center.z).multiplyMat4(transformation), data.color);
     }
 
     /**
@@ -227,7 +225,6 @@ module.exports = class CanvasApi {
      * @param {Vec3} color 
      */
     static DrawSphere(context, center, normal, radius, color) {
-
         for (let i = 0; i < radius; i++) {
             let x = 0;
             let y = i;
@@ -311,10 +308,13 @@ module.exports = class CanvasApi {
 
         let dZStep = (dX != 0) ? dZ / dX : 0;
 
+        let view = new Mat4(Util.invertMatrix(Mat4.Scale(0.5, 0.5, 1, 1).multiplyMat4(Mat4.Translation(0.5, 0.5, 0).multiplyMat4(Mat4.Scale(context.Width, context.Height, -100, 1))).elements));
+        let camera = context.GetLocation(0);
+
         for (let i = x; i < dest.x; i++) {
-            let data = { width: context.Width, height: context.Height, position: new Vec3(i, y, Math.round(z)), color: new Vec4(color.x, color.y, color.z, color.w) };
+            let data = { width: context.Width, height: context.Height, position: new Vec3(i, y, Math.round(z)).multiplyMat4(view).multiplyMat4(camera.unProject), color: new Vec4(color.x, color.y, color.z, color.w) };
             context.Shader.Execute(data);
-            this.DrawPixel(context, data.position, data.color);
+            this.DrawPixel(context, new Vec3(i, y, Math.round(z)), data.color);
             if (err > 0) {
                 y += signalY;
                 err = err - 2 * dX;
@@ -352,21 +352,14 @@ module.exports = class CanvasApi {
         const transformation = context.GetLocation(1);
         const window = context.GetLocation(2);
         let test = [];
-        let lightPos = new Vec3(0, 0, 100).multiplyMat4((camera.projectionViewMatrix));
-        lightPos.x = (lightPos.x / 2 + 0.5) * context.Width;
-        lightPos.y = (-lightPos.y / 2 + 0.5) * context.Height;
-        //lightPos.z *= -1;
 
+        let lightPos = new Vec3(0, 0, 100)
         let observatorPos = Vec3.Mult(camera.m_Transform.m_Position, 1);
-        observatorPos.z *= -1;
-        observatorPos = new Vec3(0, 0, 100).multiplyMat4((camera.projectionViewMatrix));
-
-        observatorPos.x = (observatorPos.x / 2 + 0.5) * context.Width;
-        observatorPos.y = (-observatorPos.y / 2 + 0.5) * context.Height;
-        //observatorPos.z *= -1;
 
         context.Shader.UploadData('lightPos', lightPos);
         context.Shader.UploadData('observatorPos', observatorPos);
+
+        let unView = Mat4.Scale(0.5, 0.5, 1, 1).multiplyMat4(Mat4.Translation(0.5, 0.5, 0).multiplyMat4(Mat4.Scale(context.Width, context.Height, -100, 1)));
 
         for (let triangle of triangles) {
             v1 = new Vec3((vertexBuffer[triangle[0] * n + offset]), (vertexBuffer[triangle[0] * n + 1 + offset]), vertexBuffer[triangle[0] * n + 2 + offset]);
@@ -386,18 +379,13 @@ module.exports = class CanvasApi {
 
             //if (camera.m_Plane.DistanceToPoint(v1) < 0) continue;
 
-            if (v1.z == Infinity || v2.z == Infinity || v3.z == Infinity) continue;
+            if (v1.z < -1 || v1.z > 1 && v2.z < -1 || v2.z > 1 && v3.z < -1 || v3.z > 1) continue;
 
             //if (!window.Clip(v1, v2) && !window.Clip(v2, v3) && !window.Clip(v3, v1)) continue;
 
-            v1.x = (v1.x / 2 + 0.5) * context.Width;
-            v1.y = (-v1.y / 2 + 0.5) * context.Height;
-
-            v2.x = (v2.x / 2 + 0.5) * context.Width;
-            v2.y = (-v2.y / 2 + 0.5) * context.Height;
-
-            v3.x = (v3.x / 2 + 0.5) * context.Width;
-            v3.y = (-v3.y / 2 + 0.5) * context.Height;
+            v1 = v1.multiplyMat4(unView);
+            v2 = v2.multiplyMat4(unView);
+            v3 = v3.multiplyMat4(unView);
 
             test.push(new Triangle(v1, v2, v3, color));
             //this.DrawTriangle(context, v1, v2, v3, color);
@@ -764,16 +752,12 @@ module.exports = class CanvasApi {
         const transformation = context.GetLocation(1);
 
         let lightPos = new Vec3(0, 0, 100);
-        //lightPos.z *= -1;        
 
-        let observatorPos = Vec3.Mult(camera.m_Transform.m_Position, -1);
-        observatorPos = observatorPos.multiplyMat4((camera.projectionViewMatrix));
-        observatorPos.z *= -1;
-        observatorPos.x = (observatorPos.x / 2 + 0.5) * context.Width;
-        observatorPos.y = (-observatorPos.y / 2 + 0.5) * context.Height;
+        let observatorPos = Vec3.Mult(camera.m_Transform.m_Position, 1);
 
         context.Shader.UploadData('lightPos', lightPos);
         context.Shader.UploadData('observatorPos', observatorPos);
+        let unView = Mat4.Scale(0.5, 0.5, 1, 1).multiplyMat4(Mat4.Translation(0.5, 0.5, 0).multiplyMat4(Mat4.Scale(context.Width, context.Height, -100, 1)));
 
         for (let circle of circles) {
             let radius = vertexBuffer[circle * n + 3 + offset];
@@ -787,23 +771,16 @@ module.exports = class CanvasApi {
                 v2 = v2.multiplyMat4(transformation);
             }
 
+
             v1 = v1.multiplyMat4((camera.projectionViewMatrix));
             v2 = v2.multiplyMat4((camera.projectionViewMatrix));
 
-
             if (v1.z < -1 || v1.z > 1 && v2.z < -1 || v2.z > 1) continue;
-            //console.log(camera.m_Plane.DistanceToPoint(v1), camera.m_Plane);
-            //if (camera.m_Plane.DistanceToPoint(v1) < 0) continue;
 
-            //v1.x = (v1.x / 2 + 0.5) * context.Width;
-            //v1.y = (-v1.y / 2 + 0.5) * context.Height;
-            v1.z *= 100;
+            v1 = v1.multiplyMat4(unView);
+            v2 = v2.multiplyMat4(unView);
 
-            //v2.x = (v2.x / 2 + 0.5) * context.Width;
-            //v2.y = (-v2.y / 2 + 0.5) * context.Height;
-            v2.z *= 100;
 
-            //console.log(v1, camera.m_Transform.m_Position);
             radius = Vec3.Sub(v1, v2).Norm();
 
             this.DrawSphere(context, new Vec3(v1.x, v1.y, v1.z), new Vec3(0, 0, 1), radius, color);
