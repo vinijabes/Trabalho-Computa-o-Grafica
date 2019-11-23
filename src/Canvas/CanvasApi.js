@@ -68,6 +68,9 @@ module.exports = class CanvasApi {
      * @param {CanvasContext} context 
      */
     static DrawPixel(context, position, color) {
+        position.x = (position.x / 2 + 0.5) * context.Width;
+        position.y = (-position.y / 2 + 0.5) * context.Height;
+
         if (position.x > context.Width - 2 || position.x < 0 || position.y > context.Height || position.y < 0) return;
         let i = (Math.round(position.y) * Math.floor(context.Width) + Math.round(position.x));
         if (position.z <= this.s_zBuffer[i]) {
@@ -172,6 +175,7 @@ module.exports = class CanvasApi {
         // let transformation = context.GetLocation(1);
         // if (!transformation) transformation = Mat4.Identity();
         let transformation = Mat4.Identity();
+        let camera = context.GetLocation(0);
 
         let data = { width: context.Width, height: context.Height, position: new Vec3(center.x + x, center.y + y, center.z), color: new Vec4(color.x, color.y, color.z, color.w) };
         context.Shader.UploadData('normal', Vec3.Sub(data.position, sphereCenter).Normalize());
@@ -759,9 +763,7 @@ module.exports = class CanvasApi {
         const camera = context.GetLocation(0);
         const transformation = context.GetLocation(1);
 
-        let lightPos = new Vec3(0, 0, 100).multiplyMat4((camera.projectionViewMatrix));
-        lightPos.x = (lightPos.x / 2 + 0.5) * context.Width;
-        lightPos.y = (-lightPos.y / 2 + 0.5) * context.Height;
+        let lightPos = new Vec3(0, 0, 100);
         //lightPos.z *= -1;        
 
         let observatorPos = Vec3.Mult(camera.m_Transform.m_Position, -1);
@@ -788,15 +790,19 @@ module.exports = class CanvasApi {
             v1 = v1.multiplyMat4((camera.projectionViewMatrix));
             v2 = v2.multiplyMat4((camera.projectionViewMatrix));
 
+
+            if (v1.z < -1 || v1.z > 1 && v2.z < -1 || v2.z > 1) continue;
             //console.log(camera.m_Plane.DistanceToPoint(v1), camera.m_Plane);
             //if (camera.m_Plane.DistanceToPoint(v1) < 0) continue;
-            
-            v1.x = (v1.x / 2 + 0.5) * context.Width;
-            v1.y = (-v1.y / 2 + 0.5) * context.Height;
 
-            v2.x = (v2.x / 2 + 0.5) * context.Width;
-            v2.y = (-v2.y / 2 + 0.5) * context.Height;
-            
+            //v1.x = (v1.x / 2 + 0.5) * context.Width;
+            //v1.y = (-v1.y / 2 + 0.5) * context.Height;
+            v1.z *= 100;
+
+            //v2.x = (v2.x / 2 + 0.5) * context.Width;
+            //v2.y = (-v2.y / 2 + 0.5) * context.Height;
+            v2.z *= 100;
+
             //console.log(v1, camera.m_Transform.m_Position);
             radius = Vec3.Sub(v1, v2).Norm();
 

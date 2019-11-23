@@ -12,6 +12,7 @@ const MeshRenderer = Ava.Engine.Components.MeshRenderer;
 const SphereRenderer = Ava.Engine.Components.SphereRenderer;
 const RendererSystem = Ava.Engine.RendererSystem;
 const Time = Ava.Engine.Time;
+const Util = require('./src/Util/index');
 
 const gameObjectsSelect = document.getElementById("gameobjects");
 const c = document.getElementById('view');
@@ -44,6 +45,7 @@ shader.Compile((ava, location) => {
   if (cosTeta < 0 || cosAlpha < 0) cosAlpha = 0;
 
   let d = Vec3.Sub(location.lightPos, ava.position).Norm() / (Math.sqrt(ava.width ** 2 + ava.height ** 2) / 8);
+  //console.log(location.lightPos, ava.position);
   let k = 0.3;
 
   if (!location.phong) {
@@ -178,20 +180,24 @@ TestObject.GetComponent(MeshRenderer).m_Mesh.Index = [
 TestObject.Transform.Scale(1, 1, 1, 1 / 4);
 
 let camera = new Camera();
-let projection = Mat4.Frustum(-0.5, 0.5, -0.5, 0.5, 1, 10);//Mat4.Ortho();//
+let projection = Mat4.Frustum(-1.0, 1.0, -1.0, 1.0, 30, 100);//Mat4.Ortho();//
 
 camera.SetProjection(projection);
-//camera.SetView(Mat4.Viewport(-CanvasContext.Width / 2, CanvasContext.Width / 2, -CanvasContext.Height / 2, CanvasContext.Height / 2, -1, 1));
-camera.Follow(plane);
+camera.SetView(Mat4.Viewport(-CanvasContext.Width / 2, CanvasContext.Width / 2, -CanvasContext.Height / 2, CanvasContext.Height / 2, -1, 1));
+//camera.Follow(plane);
 
 let viewport = Mat4.Viewport(-CanvasContext.Width / 2, CanvasContext.Width / 2, -CanvasContext.Height / 2, CanvasContext.Height / 2, -1, 1);
 
+let testInvert = new Mat4(Util.invertMatrix(camera.projectionViewMatrix.elements));
+
 console.groupCollapsed("FRONT CAMERA");
-console.log(new Vec3(0.5, 0.5, 10.1).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(0.5, 0, 10).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(0.5, 0, 1).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(0.5, 0, 0.9).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(2.0, 0, 0.5).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(CanvasContext.Width / 2 + 4, 1.0, 10.1).multiplyMat4(camera.projectionViewMatrix).multiplyMat4(testInvert));
+console.log(new Vec3(CanvasContext.Width / 2, 1.0, 10.1).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(CanvasContext.Width / 2 + 1, 1.0, 10).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(CanvasContext.Width / 2, 1.0, 10).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(CanvasContext.Width / 2, 0, 1).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(CanvasContext.Width / 2, 0, 0.9).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(CanvasContext.Width / 2, 0, 0.5).multiplyMat4(camera.projectionViewMatrix));
 console.groupEnd("FRONT CAMERA");
 
 console.groupCollapsed("BEHIND CAMERA");
@@ -216,14 +222,14 @@ console.log(new Vec3(2.0, 0, 0.5).multiplyMat4(camera.projectionViewMatrix));
 console.groupEnd("BEHIND CAMERA");
 
 console.groupCollapsed("LEFT CAMERA");
-camera.SetLookAt(new Vec3(1, 0, 0));
+camera.SetLookAt(new Vec3(1, 0, 10));
 camera.m_Transform.Translate(new Vec3(0, 0, -10));
 console.log(new Vec3(0.5, 0.5, 10.1).multiplyMat4(camera.projectionViewMatrix));
 console.log(new Vec3(0.5, 0, 10).multiplyMat4(camera.projectionViewMatrix));
 console.log(new Vec3(0.5, 0, 1).multiplyMat4(camera.projectionViewMatrix));
 console.log(new Vec3(0.5, 0, 0.9).multiplyMat4(camera.projectionViewMatrix));
 console.log(new Vec3(2.0, 0, 0.5).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(2.0, 0, 0.5).multiplyMat4(camera.LookAt(new Vec3(1, 0, 0))));
+console.log(new Vec3(-10.0, 0, 10).multiplyMat4(camera.LookAt(new Vec3(1, 0, 10))));
 console.log(camera.LookAt(new Vec3(1, 0, 0)));
 console.groupEnd("LEFT CAMERA");
 
@@ -239,7 +245,6 @@ console.groupEnd("RIGHT CAMERA");
 
 console.groupCollapsed("TOP CAMERA");
 camera.SetLookAt(new Vec3(0, 1, 0));
-
 console.log(new Vec3(0.5, 0.5, 10.1).multiplyMat4(camera.projectionViewMatrix));
 console.log(new Vec3(0.5, 0, 10).multiplyMat4(camera.projectionViewMatrix));
 console.log(new Vec3(0.5, 0, 1).multiplyMat4(camera.projectionViewMatrix));
@@ -257,7 +262,7 @@ console.log(new Vec3(0.5, 0, 0.9).multiplyMat4(camera.projectionViewMatrix));
 console.log(new Vec3(2.0, 0, 0.5).multiplyMat4(camera.projectionViewMatrix));
 console.groupEnd("BOTTOM CAMERA");
 
-return;
+camera.m_Transform.Translate(new Vec3(0, 0, 100))
 
 Canvas.CanvasApi.SetLocation(CanvasContext, 0, camera);
 Canvas.CanvasApi.SetLocation(CanvasContext, 2, new Window(new Vec2(-1, -1), new Vec2(2, 2)));
@@ -365,8 +370,8 @@ var update = (delta) => {
 
   sphere.Update();
   sphere2.Update();
-  plane.Update();
-  light.Update();
+  //plane.Update();
+  //light.Update();
   //TestObject.Update();
   camera.Update(delta);
   menu.Update(delta);
@@ -391,8 +396,6 @@ let last = 0;
 let elapsed = 0;
 let fpsInterval = 1000 / 20;
 var frame = function (now) {
-  requestAnimationFrame(frame, CanvasContext.RawContext);
-
   delta += now - last;
   elapsed = now - last;
 
@@ -413,7 +416,9 @@ var frame = function (now) {
     CanvasContext.RawContext.clearRect(0, 0, CanvasContext.Width, CanvasContext.Height);
     //Canvas.CanvasApi.DrawCircle(CanvasContext, { x: CanvasContext.Width / 2, y: CanvasContext.Height / 2 }, new Vec3(0, 0, 1), 2, { x: 0, y: 0, z: 0, w: 1.0 })
     render();
+    return;
   }
+  requestAnimationFrame(frame, CanvasContext.RawContext);
 };
 
 frame(0);
