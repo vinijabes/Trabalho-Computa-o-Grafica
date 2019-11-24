@@ -39,7 +39,6 @@ module.exports = class Camera {
 
     SetLookAt(target) {
         this.lookAt = this.LookAt(target);
-        console.log(this.lookAt);
         this.UpdateProjectionViewMatrix();
     }
 
@@ -74,13 +73,13 @@ module.exports = class Camera {
     
 
     Update(delta) {
-        //console.log(this.m_Position);
+        //console.log(this.m_Transform.m_Position);
         if (InputController.Instance().IsKeyDown(37)) {
-            this.m_Transform.Translate(new Vec3(this.m_TranslationSpeed * delta, 0, 0));
+            this.m_Transform.Translate(new Vec3(-this.m_TranslationSpeed * delta, 0, 0));
         }
 
         if (InputController.Instance().IsKeyDown(39)) {
-            this.m_Transform.Translate(new Vec3(-this.m_TranslationSpeed * delta, 0, 0));
+            this.m_Transform.Translate(new Vec3(this.m_TranslationSpeed * delta, 0, 0));
         }
 
         if (InputController.Instance().IsKeyDown(38)) {
@@ -92,22 +91,22 @@ module.exports = class Camera {
         }
 
         if (InputController.Instance().IsKeyDown(65)) {
-            this.m_Transform.Rotate(this.m_RotationSpeed * delta, 0, 0);
+            //this.m_Transform.Rotate(this.m_RotationSpeed * delta, 0, 0);
             //this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationX(this.m_RotationSpeed * delta));
         }
 
         if (InputController.Instance().IsKeyDown(68)) {
-            this.m_Transform.Rotate(this.m_RotationSpeed * -delta, 0, 0);
+            //this.m_Transform.Rotate(this.m_RotationSpeed * -delta, 0, 0);
             //this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationX(-this.m_RotationSpeed * delta));
         }
 
         if (InputController.Instance().IsKeyDown(87)) {
-            this.m_Transform.Rotate(0, this.m_RotationSpeed * delta, 0);
+            //this.m_Transform.Rotate(0, this.m_RotationSpeed * delta, 0);
             //this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationY(this.m_RotationSpeed * delta));
         }
 
         if (InputController.Instance().IsKeyDown(83)) {
-            this.m_Transform.Rotate(0, this.m_RotationSpeed * -delta, 0);
+            //this.m_Transform.Rotate(0, this.m_RotationSpeed * -delta, 0);
             //this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationY(-this.m_RotationSpeed * delta));
         }
 
@@ -120,7 +119,7 @@ module.exports = class Camera {
         }
 
         if (this.following) this.SetLookAt(this.following.Transform.m_Position);
-        else this.SetLookAt(new Vec3(0, 0, 0));
+        else this.SetLookAt(new Vec3(this.m_Transform.m_Position.x, this.m_Transform.m_Position.y, this.m_Transform.m_Position.z - 1));
 
         this.m_Transform.Update();
         this.m_Transformation = this.m_Transform.m_TransformationMatrix;

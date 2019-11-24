@@ -39,13 +39,12 @@ shader.Compile((ava, location) => {
   let L = Vec3.Sub(location.lightPos, ava.position).Normalize();
   let R = (N.Clone().Mult(2 * N.Dot(L))).Sub(L).Normalize();
   let S = Vec3.Sub(location.observatorPos, ava.position).Normalize();
-
   let cosTeta = ((N.Dot(L)) / (N.Norm() * L.Norm()));
   let cosAlpha = (R.Dot(S)) / (R.Norm() * S.Norm());
   if (cosTeta < 0 || cosAlpha < 0) cosAlpha = 0;
 
-  let d = Vec3.Sub(location.lightPos, ava.position).Norm() / (Math.sqrt(ava.width ** 2 + ava.height ** 2) / 1);
-  let k = 0.6;
+  let d = Vec3.Sub(location.lightPos, ava.position).Norm() / (Math.sqrt(ava.width ** 2 + ava.height ** 2) / 8);
+  let k = 0.3;
 
   if (!location.phong) {
     ava.color = new Vec4(
@@ -88,6 +87,10 @@ plane.m_Material.m_Kd = 0.7;
 plane.m_Material.m_N = 5;
 plane.m_Material.m_Shader = shader;
 plane.AddComponent(MeshRenderer);
+
+TestObject.m_Material.m_Ks = 0.4;
+TestObject.m_Material.m_Kd = 0.7;
+TestObject.m_Material.m_N = 5;
 
 let light = new GO();
 light.AddComponent(SphereRenderer);
@@ -176,10 +179,11 @@ TestObject.GetComponent(MeshRenderer).m_Mesh.Index = [
 
 //console.log(Mat4.Frustum(-1.0, 1.0, 1.0, -1.0, -1.0, 1.0));
 
-TestObject.Transform.Scale(1, 1, 1, 1 / 4);
+TestObject.Transform.Scale(1, 1, 1, 1/4);
+TestObject.Transform
 
 let camera = new Camera();
-let projection = Mat4.Frustum(-1.0, 1.0, -1.0, 1.0, 20, 200);//Mat4.Ortho();//
+let projection = Mat4.OrthoFrustum(-1.0, 1.0, -1.0, 1.0, 20, 600);//Mat4.Ortho();//
 
 camera.SetProjection(projection);
 camera.SetView(Mat4.Viewport(-CanvasContext.Width / 2, CanvasContext.Width / 2, -CanvasContext.Height / 2, CanvasContext.Height / 2, -1, 1));
@@ -190,13 +194,13 @@ let viewport = Mat4.Viewport(-CanvasContext.Width / 2, CanvasContext.Width / 2, 
 let testInvert = new Mat4(Util.invertMatrix(camera.projectionViewMatrix.elements));
 
 console.groupCollapsed("FRONT CAMERA");
-console.log(new Vec3(CanvasContext.Width / 2 + 4, 1.0, 10.1).multiplyMat4(camera.projectionViewMatrix).multiplyMat4(testInvert));
-console.log(new Vec3(CanvasContext.Width / 2, 1.0, 10.1).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(CanvasContext.Width / 2 + 1, 1.0, 10).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(CanvasContext.Width / 2, 1.0, 10).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(CanvasContext.Width / 2, 0, 1).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(CanvasContext.Width / 2, 0, 0.9).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(CanvasContext.Width / 2, 0, 0.5).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(CanvasContext.Width / 2 + 4, 1.0, 401).multiplyMat4(camera.projectionViewMatrix).multiplyMat4(testInvert));
+console.log(new Vec3(CanvasContext.Width / 2, 1.0, 401).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(CanvasContext.Width / 2 + 1, 1.0, 400).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(CanvasContext.Width / 2, 1.0, 400).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(CanvasContext.Width / 2, 0, 21).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(CanvasContext.Width / 2, 0, 19).multiplyMat4(camera.projectionViewMatrix));
+console.log(new Vec3(CanvasContext.Width / 2, 0, 10).multiplyMat4(camera.projectionViewMatrix));
 console.groupEnd("FRONT CAMERA");
 
 console.groupCollapsed("BEHIND CAMERA");
@@ -261,7 +265,7 @@ console.log(new Vec3(0.5, 0, 0.9).multiplyMat4(camera.projectionViewMatrix));
 console.log(new Vec3(2.0, 0, 0.5).multiplyMat4(camera.projectionViewMatrix));
 console.groupEnd("BOTTOM CAMERA");
 
-camera.m_Transform.Translate(new Vec3(0, 0, 100))
+camera.m_Transform.Translate(new Vec3(0, 0, 250))
 
 Canvas.CanvasApi.SetLocation(CanvasContext, 0, camera);
 Canvas.CanvasApi.SetLocation(CanvasContext, 2, new Window(new Vec2(-1, -1), new Vec2(2, 2)));
@@ -367,11 +371,11 @@ var update = (delta) => {
   shader.UploadData('phong', Checkbox.Value());
   //test.Update();
 
-  sphere.Update();
+  //sphere.Update();
   //sphere2.Update();
   //plane.Update();
   //light.Update();
-  //TestObject.Update();
+  TestObject.Update();
   camera.Update(delta);
   menu.Update(delta);
   if (!select.Value()) return;
@@ -395,10 +399,12 @@ let last = 0;
 let elapsed = 0;
 let fpsInterval = 1000 / 20;
 var frame = function (now) {
+  requestAnimationFrame(frame, CanvasContext.RawContext);
   delta += now - last;
   elapsed = now - last;
 
   if (!paused && elapsed > fpsInterval) {
+    //if (!Ava.Engine.InputController.Instance().IsKeyDown(13)) return;
     update(1 / 60);
 
     last = now - (elapsed % fpsInterval);
@@ -416,7 +422,6 @@ var frame = function (now) {
     //Canvas.CanvasApi.DrawCircle(CanvasContext, { x: CanvasContext.Width / 2, y: CanvasContext.Height / 2 }, new Vec3(0, 0, 1), 2, { x: 0, y: 0, z: 0, w: 1.0 })
     render();
   }
-  requestAnimationFrame(frame, CanvasContext.RawContext);
 };
 
 frame(0);
