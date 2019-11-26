@@ -10,6 +10,7 @@ module.exports = class Camera {
     view = Mat4.Identity();
     lookAt = Mat4.Identity();
     m_Transformation = Mat4.Identity();
+    m_Back = new Vec3(0, 0, 1);
 
     m_RotationSpeed = 30.0;
     m_TranslationSpeed = 100;
@@ -24,6 +25,7 @@ module.exports = class Camera {
         this.m_Transform.Start();
         this.m_Plane = new Plane();
         this.m_Plane.m_Normal = new Vec3(0, 0, 1);
+        this.m_Transform.Rotate(0, 90, 0);
         this.SetLookAt(new Vec3(0, 0, 1));
     }
 
@@ -42,8 +44,8 @@ module.exports = class Camera {
         this.UpdateProjectionViewMatrix();
     }
 
-    LookAt(target) {
-        let cameraDirection = Vec3.Sub(this.m_Transform.m_Position, target).Normalize();
+    SetLookAtDirection(direction) {
+        let cameraDirection = direction.Normalize();
         let Up = new Vec3(0, 1, 0);
         let cameraRight = Up.Cross(cameraDirection).Normalize();
         let cameraUp = cameraDirection.Cross(cameraRight);
@@ -59,67 +61,82 @@ module.exports = class Camera {
         lookAtMatrix.elements[1][2] = cameraDirection.y;
         lookAtMatrix.elements[2][2] = cameraDirection.z;
         lookAtMatrix.elements[3][3] = 1;
-        let translation = Mat4.Translation(-this.m_Transform.m_Position.x, -this.m_Transform.m_Position.y, -this.m_Transform.m_Position.z).multiplyMat4(this.m_Transform.m_Rotation);
+        let translation = Mat4.Translation(-this.m_Transform.m_Position.x, -this.m_Transform.m_Position.y, -this.m_Transform.m_Position.z);
 
         this.m_Plane.m_Normal = Vec3.Mult(cameraDirection, -1);
         this.m_Plane.m_Distance = 0;
 
-        return translation.multiplyMat4(lookAtMatrix);
+        this.lookAt = translation.multiplyMat4(lookAtMatrix);//translation.multiplyMat4(lookAtMatrix);            
+        this.UpdateProjectionViewMatrix();
+        return this.lookAt;
+    }
+
+    LookAt(target) {
+        let cameraDirection = Vec3.Sub(this.m_Transform.m_Position, target).Normalize();
+        return this.SetLookAtDirection(cameraDirection);
     }
 
     UpdateProjectionViewMatrix() {
-        this.projectionViewMatrix = this.lookAt.multiplyMat4(this.projection.multiplyMat4(this.view));
+        this.projectionViewMatrix = this.lookAt.multiplyMat4(this.view).multiplyMat4(this.projection);
     }
-    
+
 
     Update(delta) {
         //console.log(this.m_Transform.m_Position);
         if (InputController.Instance().IsKeyDown(37)) {
-            this.m_Transform.Translate(new Vec3(-this.m_TranslationSpeed * delta, 0, 0));
+            this.m_Transform.Translate(this.Right.Mult(-delta * this.m_TranslationSpeed));
         }
 
         if (InputController.Instance().IsKeyDown(39)) {
-            this.m_Transform.Translate(new Vec3(this.m_TranslationSpeed * delta, 0, 0));
+            this.m_Transform.Translate(this.Right.Mult(delta * this.m_TranslationSpeed));
         }
 
         if (InputController.Instance().IsKeyDown(38)) {
-            this.m_Transform.Translate(new Vec3(0, -this.m_TranslationSpeed * delta, 0));
+            this.m_Transform.Translate(this.Up.Mult(-delta * this.m_TranslationSpeed));
         }
 
         if (InputController.Instance().IsKeyDown(40)) {
-            this.m_Transform.Translate(new Vec3(0, this.m_TranslationSpeed * delta, 0));
+            this.m_Transform.Translate(this.Up.Mult(delta * this.m_TranslationSpeed));
         }
 
         if (InputController.Instance().IsKeyDown(65)) {
-            //this.m_Transform.Rotate(this.m_RotationSpeed * delta, 0, 0);
-            //this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationX(this.m_RotationSpeed * delta));
+            this.m_Transform.Rotate(this.m_RotationSpeed * delta, 0, 0);
+            this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationX(this.m_RotationSpeed * delta));
+            this.SetLookAtDirection(this.Back);
+            console.log(this.Front, this.m_Transform.m_LocalEulerAngles.x);
         }
 
         if (InputController.Instance().IsKeyDown(68)) {
-            //this.m_Transform.Rotate(this.m_RotationSpeed * -delta, 0, 0);
-            //this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationX(-this.m_RotationSpeed * delta));
+            this.m_Transform.Rotate(this.m_RotationSpeed * -delta, 0, 0);
+            this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationX(-this.m_RotationSpeed * delta));
+            this.SetLookAtDirection(this.Back);
+            console.log(this.Front, this.m_Transform.m_LocalEulerAngles.x);
         }
 
         if (InputController.Instance().IsKeyDown(87)) {
-            //this.m_Transform.Rotate(0, this.m_RotationSpeed * delta, 0);
-            //this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationY(this.m_RotationSpeed * delta));
+            this.m_Transform.Rotate(0, this.m_RotationSpeed * delta, 0);
+            this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationY(this.m_RotationSpeed * delta));
+            this.SetLookAtDirection(this.Back);
         }
 
         if (InputController.Instance().IsKeyDown(83)) {
-            //this.m_Transform.Rotate(0, this.m_RotationSpeed * -delta, 0);
-            //this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationY(-this.m_RotationSpeed * delta));
+            this.m_Transform.Rotate(0, this.m_RotationSpeed * -delta, 0);
+            this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationY(-this.m_RotationSpeed * delta));
+            this.SetLookAtDirection(this.Back);
         }
 
         if (InputController.Instance().IsKeyDown(17)) {
-            this.m_Transform.Translate(new Vec3(0, 0, -this.m_TranslationSpeed * delta));
+            this.m_Transform.Translate(this.Back.Mult(delta * this.m_TranslationSpeed));
         }
 
         if (InputController.Instance().IsKeyDown(32)) {
-            this.m_Transform.Translate(new Vec3(0, 0, this.m_TranslationSpeed * delta));
+            this.m_Transform.Translate(this.Front.Mult(delta * this.m_TranslationSpeed));
         }
 
         if (this.following) this.SetLookAt(this.following.Transform.m_Position);
-        else this.SetLookAt(new Vec3(this.m_Transform.m_Position.x, this.m_Transform.m_Position.y, this.m_Transform.m_Position.z - 1));
+        else {
+            this.SetLookAtDirection(this.Back);
+        }
 
         this.m_Transform.Update();
         this.m_Transformation = this.m_Transform.m_TransformationMatrix;
@@ -141,4 +158,32 @@ module.exports = class Camera {
 
     get unProject() { return new Mat4(Utils.invertMatrix(this.projectionViewMatrix.elements)); }
     get Position() { return this.m_Transform.m_Position; }
+    get Back() {
+        let back = new Vec3();
+        let pitch = Math.PI / 180 * this.m_Transform.m_LocalEulerAngles.x;
+        let yaw = Math.PI / 180 * this.m_Transform.m_LocalEulerAngles.y;
+        back.x = Math.cos(pitch) * Math.cos(yaw);
+        back.y = Math.sin(pitch);
+        back.z = Math.cos(pitch) * Math.sin(yaw);
+        return back.Normalize();
+    }
+
+    get Front() {
+        return this.Back.Mult(-1);
+    }
+
+    get Up() {
+        let up = new Vec3();
+        let pitch = Math.PI / 180 * (this.m_Transform.m_LocalEulerAngles.x + 90);
+        let yaw = Math.PI / 180 * this.m_Transform.m_LocalEulerAngles.y;
+        up.x = Math.cos(pitch) * Math.cos(yaw);
+        up.y = Math.sin(pitch);
+        up.z = Math.cos(pitch) * Math.sin(yaw);
+
+        return up.Normalize();
+    }
+
+    get Right() {
+        return this.Front.Cross(this.Up);
+    }
 }

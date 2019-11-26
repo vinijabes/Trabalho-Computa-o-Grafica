@@ -78,7 +78,7 @@ sphere2.m_Material.m_N = 50;
 sphere2.AddComponent(SphereRenderer);
 sphere2.GetComponent(SphereRenderer).Radius = 35;
 sphere2.GetComponent(SphereRenderer).Color = new Vec4(1, 0, 0, 1);
-sphere2.Transform.Translate(new Vec3(100, 0, 30));
+sphere2.Transform.Translate(new Vec3(100, 0, 35));
 
 
 let plane = new GO();
@@ -101,10 +101,10 @@ light.SetActive(false);
 
 const verticesPlano =
   [
-    0, 0, 0, 0, 0, 1, 1,
-    100, 0, 0, 0, 0, 1, 1,
-    0, 100, 0, 0, 0, 1, 1,
-    100, 100, 0, 0, 0, 1, 1,
+    0, 0, 0, 0, 0, 1, 1, 0, 0, 1,
+    100, 0, 0, 0, 0, 1, 1, 0, 0, 1,
+    0, 100, 0, 0, 0, 1, 1, 0, 0, 1,
+    100, 100, 0, 0, 0, 1, 1, 0, 0, 1
   ]
 
 const indicesPlano = [
@@ -114,6 +114,20 @@ const indicesPlano = [
 
 plane.GetComponent(MeshRenderer).m_Mesh.Index = indicesPlano;
 plane.GetComponent(MeshRenderer).m_Mesh.Vertex = verticesPlano;
+plane.GetComponent(MeshRenderer).m_Strip = true;
+
+let boundings = new GO();
+boundings.AddComponent(MeshRenderer);
+boundings.GetComponent(MeshRenderer).m_Strip = true;
+boundings.GetComponent(MeshRenderer).m_Mesh.Vertex = [
+  -CanvasContext.Width / 2 + 2, -CanvasContext.Height / 2 + 2, 999, 1, 1, 1, 1, 0, 0, 0,
+  -CanvasContext.Width / 2 + 2, CanvasContext.Height / 2 - 2, 999, 1, 1, 1, 1, 0, 0, 0,
+  CanvasContext.Width / 2 - 2, CanvasContext.Height / 2 - 2, 1, 1, 1, 1, 1, 0, 0, 0,
+]
+
+boundings.GetComponent(MeshRenderer).m_Mesh.Index = [
+  0, 1, 2
+]
 
 const vertexArray = new VertexArray();
 vertexArray.AddVextexAttrib(0, VertexArray.AvaType.Vec3);
@@ -179,93 +193,120 @@ TestObject.GetComponent(MeshRenderer).m_Mesh.Index = [
 
 //console.log(Mat4.Frustum(-1.0, 1.0, 1.0, -1.0, -1.0, 1.0));
 
-TestObject.Transform.Scale(1, 1, 1, 1/4);
+TestObject.Transform.Scale(1, 1, 1, 1 / 4);
 TestObject.Transform
 
 let camera = new Camera();
-let projection = Mat4.OrthoFrustum(-1.0, 1.0, -1.0, 1.0, 20, 600);//Mat4.Ortho();//
+let projection = () => {
+  return Mat4.OrthoFrustum(-CanvasContext.Width / 2, CanvasContext.Width / 2, -CanvasContext.Height / 2, CanvasContext.Height / 2, 0.1, 1000);
+  //return Mat4.Perspective(45, 1, 0.1, 1000)
+};//Mat4.Frustum(-1.0, 1.0, -1.0, 1.0, 50, 600);//Mat4.Ortho();//
 
-camera.SetProjection(projection);
-camera.SetView(Mat4.Viewport(-CanvasContext.Width / 2, CanvasContext.Width / 2, -CanvasContext.Height / 2, CanvasContext.Height / 2, -1, 1));
+camera.SetProjection(projection());
+//camera.SetView(Mat4.Viewport(-CanvasContext.Width / 2, CanvasContext.Width / 2, -CanvasContext.Height / 2, CanvasContext.Height / 2, -1, 1));
 //camera.Follow(plane);
 
 let viewport = Mat4.Viewport(-CanvasContext.Width / 2, CanvasContext.Width / 2, -CanvasContext.Height / 2, CanvasContext.Height / 2, -1, 1);
 
 let testInvert = new Mat4(Util.invertMatrix(camera.projectionViewMatrix.elements));
 
-console.groupCollapsed("FRONT CAMERA");
-console.log(new Vec3(CanvasContext.Width / 2 + 4, 1.0, 401).multiplyMat4(camera.projectionViewMatrix).multiplyMat4(testInvert));
-console.log(new Vec3(CanvasContext.Width / 2, 1.0, 401).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(CanvasContext.Width / 2 + 1, 1.0, 400).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(CanvasContext.Width / 2, 1.0, 400).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(CanvasContext.Width / 2, 0, 21).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(CanvasContext.Width / 2, 0, 19).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(CanvasContext.Width / 2, 0, 10).multiplyMat4(camera.projectionViewMatrix));
-console.groupEnd("FRONT CAMERA");
+let points = [];
 
-console.groupCollapsed("BEHIND CAMERA");
-camera.SetLookAt(new Vec3(0, 0, -1));
+points.push(new Vec3(0, 0, 0));
+points.push(new Vec3(0, 0, 400));
+points.push(new Vec3(0, 0, -400));
+points.push(new Vec3(0, Math.floor(CanvasContext.Height / 2), 0));
+points.push(new Vec3(0, -Math.floor(CanvasContext.Height / 2), 0));
+points.push(new Vec3(Math.floor(CanvasContext.Width / 2), 0, 0));
+points.push(new Vec3(-Math.floor(CanvasContext.Width / 2), 0, 0));
 
-console.log(new Vec3(0.5, 0.5, 10.1).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(0.5, 0, 10).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(0.5, 0, 1).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(0.5, 0, 0.9).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(2.0, 0, 0.5).multiplyMat4(camera.projectionViewMatrix));
-console.groupEnd("BEHIND CAMERA");
+//camera.m_Transform.GoTo(new Vec3(10, 10, 10));
+console.groupCollapsed("(0, 0, 1) CAMERA");
+camera.m_Transform.RotateTo(0, 90, 0);
+camera.Update();
 
-console.groupCollapsed("BEHIND CAMERA");
-camera.m_Transform.Translate(new Vec3(0, 0, 10));
-camera.SetLookAt(new Vec3(0, 0, 11));
+console.log(camera.Position);
+console.log(camera.Back);
+for (let p of points) {
+  console.log(p.multiplyMat4(camera.projectionViewMatrix), p);
+}
+console.groupEnd("(0, 0, 1) CAMERA");
 
-console.log(new Vec3(0.5, 0.5, 10.1).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(0.5, 0, 10).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(0.5, 0, 1).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(0.5, 0, 0.9).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(2.0, 0, 0.5).multiplyMat4(camera.projectionViewMatrix));
-console.groupEnd("BEHIND CAMERA");
+console.groupCollapsed("(0, 0, -1) CAMERA");
+camera.m_Transform.RotateTo(180, 90, 0);
+camera.Update();
 
-console.groupCollapsed("LEFT CAMERA");
-camera.SetLookAt(new Vec3(1, 0, 10));
-camera.m_Transform.Translate(new Vec3(0, 0, -10));
-console.log(new Vec3(0.5, 0.5, 10.1).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(0.5, 0, 10).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(0.5, 0, 1).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(0.5, 0, 0.9).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(2.0, 0, 0.5).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(-10.0, 0, 10).multiplyMat4(camera.LookAt(new Vec3(1, 0, 10))));
-console.log(camera.LookAt(new Vec3(1, 0, 0)));
-console.groupEnd("LEFT CAMERA");
+console.log(camera.Position);
+console.log(camera.Back);
+for (let p of points) {
+  console.log(p.multiplyMat4(camera.projectionViewMatrix), p);
+}
+console.groupEnd("(0, 0, -1) CAMERA");
 
-console.groupCollapsed("RIGHT CAMERA");
-camera.SetLookAt(new Vec3(-1, 0, 0));
+console.groupCollapsed("(0, 1, 0) CAMERA");
+camera.m_Transform.RotateTo(90, 90, 0);
+camera.Update();
 
-console.log(new Vec3(0.5, 0.5, 10.1).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(0.5, 0, 10).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(0.5, 0, 1).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(0.5, 0, 0.9).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(2.0, 0, 0.5).multiplyMat4(camera.projectionViewMatrix));
-console.groupEnd("RIGHT CAMERA");
+console.log(camera.Position);
+console.log(camera.Back);
+for (let p of points) {
+  console.log(p.multiplyMat4(camera.projectionViewMatrix), p);
+}
+console.groupEnd("(0, 1, 0) CAMERA");
 
-console.groupCollapsed("TOP CAMERA");
-camera.SetLookAt(new Vec3(0, 1, 0));
-console.log(new Vec3(0.5, 0.5, 10.1).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(0.5, 0, 10).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(0.5, 0, 1).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(0.5, 0, 0.9).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(2.0, 0, 0.5).multiplyMat4(camera.projectionViewMatrix));
-console.groupEnd("TOP CAMERA");
+console.groupCollapsed("(0, -1, 0) CAMERA");
+camera.m_Transform.RotateTo(-90, 90, 0);
+camera.Update();
 
-console.groupCollapsed("BOTTOM CAMERA");
-camera.SetLookAt(new Vec3(0, -1, 0));
+console.log(camera.Position);
+console.log(camera.Back);
+for (let p of points) {
+  console.log(p.multiplyMat4(camera.projectionViewMatrix), p);
+}
+console.groupEnd("(0, -1, 0) CAMERA");
 
-console.log(new Vec3(0.5, 0.5, 10.1).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(0.5, 0, 10).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(0.5, 0, 1).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(0.5, 0, 0.9).multiplyMat4(camera.projectionViewMatrix));
-console.log(new Vec3(2.0, 0, 0.5).multiplyMat4(camera.projectionViewMatrix));
-console.groupEnd("BOTTOM CAMERA");
+console.groupCollapsed("(1, 0, 0) CAMERA");
+camera.m_Transform.RotateTo(0, 0, 0);
+camera.Update();
 
-camera.m_Transform.Translate(new Vec3(0, 0, 250))
+console.log(camera.Position);
+console.log(camera.Back);
+for (let p of points) {
+  console.log(p.multiplyMat4(camera.projectionViewMatrix), p);
+}
+console.groupEnd("(1, 0, 0) CAMERA");
+
+console.groupCollapsed("(-1, 0, 0) CAMERA");
+camera.m_Transform.RotateTo(0, 180, 0);
+camera.Update();
+
+console.log(camera.Position);
+console.log(camera.Back);
+for (let p of points) {
+  console.log(p.multiplyMat4(camera.projectionViewMatrix), p);
+}
+console.groupEnd("(-1, 0, 0) CAMERA");
+
+console.groupCollapsed("(1, 0, 1) CAMERA");
+camera.m_Transform.RotateTo(0, 45, 0);
+camera.Update();
+
+console.log(camera.Position);
+console.log(camera.Back);
+for (let p of points) {
+  console.log(p.multiplyMat4(camera.projectionViewMatrix), p);
+}
+console.groupEnd("(1, 0, 1) CAMERA");
+
+camera.m_Transform.GoTo(new Vec3(0, 0, 100))
+for (let i = 180; i >= 0; i--) {
+  camera.m_Transform.RotateTo(i, 90, 0);
+  camera.Update();
+  console.log(i, camera.Front, new Vec3(100, 100, 0).multiplyMat4(camera.projectionViewMatrix));
+}
+
+camera.m_Transform.RotateTo(0, 90, 0);
+camera.m_Transform.GoTo(new Vec3(0, 0, 0))
 
 Canvas.CanvasApi.SetLocation(CanvasContext, 0, camera);
 Canvas.CanvasApi.SetLocation(CanvasContext, 2, new Window(new Vec2(-1, -1), new Vec2(2, 2)));
@@ -285,6 +326,16 @@ projectionSelect.AddOption('Ortogonal', Mat4.Ortho());
 projectionSelect.onChange = (value) => {
   camera.SetProjection(value);
 }
+
+let v1Text = new UI.Text(null, "v1: (0, 0, 0)");
+let v2Text = new UI.Text(null, "v2: (0, 0, 0)");
+let v3Text = new UI.Text(null, "v3: (0, 0, 0)");
+let v4Text = new UI.Text(null, "v4: (0, 0, 0)");
+
+let vxInput = new UI.Input(null, "");
+let vyInput = new UI.Input(null, "");
+let vzInput = new UI.Input(null, "");
+let v5Text = new UI.Text(null, "v4: (0, 0, 0)");
 
 let TextX = new UI.Text(null, "X: ");
 let TextY = new UI.Text(null, "Y: ");
@@ -331,6 +382,14 @@ checkMenu.AddChild(new UI.Text(null, "Phong Shader"));
 // menu.AddChild(select);
 menu.AddChild(projectionSelect);
 menu.AddChild(checkMenu);
+menu.AddChild(v1Text);
+menu.AddChild(v2Text);
+menu.AddChild(v3Text);
+menu.AddChild(v4Text);
+menu.AddChild(vxInput);
+menu.AddChild(vyInput);
+menu.AddChild(vzInput);
+menu.AddChild(v5Text);
 // menu.AddChild(TextX);
 // menu.AddChild(TextY);
 // menu.AddChild(TextZ);
@@ -371,13 +430,32 @@ var update = (delta) => {
   shader.UploadData('phong', Checkbox.Value());
   //test.Update();
 
-  //sphere.Update();
+  sphere.Update();
   //sphere2.Update();
-  //plane.Update();
+  plane.Update();
+  //boundings.Update();
   //light.Update();
-  TestObject.Update();
+  //TestObject.Update();
   camera.Update(delta);
   menu.Update(delta);
+
+  let v1 = new Vec3(-CanvasContext.Width / 2, -CanvasContext.Height / 2, 0.1).multiplyMat4(camera.projectionViewMatrix);
+  let v2 = new Vec3(CanvasContext.Width / 2, CanvasContext.Height / 2, 0.1).multiplyMat4(camera.projectionViewMatrix);
+  let v3 = new Vec3(CanvasContext.Width / 2, CanvasContext.Height / 2, 999).multiplyMat4(camera.projectionViewMatrix);
+  let v4 = camera.Position.multiplyMat4(camera.projectionViewMatrix);
+
+  let v5 = new Vec3(parseInt(vxInput.Value()), parseInt(vyInput.Value()), parseInt(vzInput.Value())).multiplyMat4(camera.projectionViewMatrix)  ;
+
+  let bounds = new Ava.Engine.Classes.Bounds();
+  bounds.SetMinMax(v1, v3);
+  //console.log(bounds.Contains(new Vec3(100, 100, 0)), bounds.Contains(new Vec3(0, 100, 0)), bounds.Contains(new Vec3(100, 0, 0)));
+  v1Text.SetText(`v1: (${v1.x.toFixed(2)}, ${v1.y.toFixed(2)}, ${v1.z.toFixed(2)})`);
+  v2Text.SetText(`v2: (${v2.x.toFixed(2)}, ${v2.y.toFixed(2)}, ${v2.z.toFixed(2)})`);
+  v3Text.SetText(`v3: (${v3.x.toFixed(2)}, ${v3.y.toFixed(2)}, ${v3.z.toFixed(2)})`);
+  v4Text.SetText(`v4: (${v4.x.toFixed(2)}, ${v4.y.toFixed(2)}, ${v4.z.toFixed(2)})`);
+  v5Text.SetText(`v5: (${v5.x.toFixed(2)}, ${v5.y.toFixed(2)}, ${v5.z.toFixed(2)})`);
+  let v = bounds.Max.Sub(bounds.Min);
+  //console.log(v.x ** 2 + v.y ** 2 + v.z ** 2);
   if (!select.Value()) return;
   // TextX.SetText(`X: ${select.Value().center().x.toFixed(2)}`);
   // TextY.SetText(`Y: ${select.Value().center().y.toFixed(2)}`);
@@ -397,9 +475,8 @@ let count = 0;
 let delta = 0;
 let last = 0;
 let elapsed = 0;
-let fpsInterval = 1000 / 20;
+let fpsInterval = 1000 / 60;
 var frame = function (now) {
-  requestAnimationFrame(frame, CanvasContext.RawContext);
   delta += now - last;
   elapsed = now - last;
 
@@ -422,6 +499,8 @@ var frame = function (now) {
     //Canvas.CanvasApi.DrawCircle(CanvasContext, { x: CanvasContext.Width / 2, y: CanvasContext.Height / 2 }, new Vec3(0, 0, 1), 2, { x: 0, y: 0, z: 0, w: 1.0 })
     render();
   }
+  requestAnimationFrame(frame, CanvasContext.RawContext);
+
 };
 
 frame(0);
@@ -547,7 +626,8 @@ window.addEventListener("resize", () => {
   c.height = document.documentElement.clientHeight;
   offscreen.width = c.width;
   offscreen.height = c.height;
-  camera.SetView(Mat4.Viewport(-CanvasContext.Width / 2, CanvasContext.Width / 2, -CanvasContext.Height / 2, CanvasContext.Height / 2, -1, 1));
+  camera.SetProjection(projection());
+  //camera.SetView(Mat4.Viewport(-CanvasContext.Width / 2, CanvasContext.Width / 2, -CanvasContext.Height / 2, CanvasContext.Height / 2, -1, 1));
   Canvas.CanvasApi.SetLocation(CanvasContext, 0, camera);
 
   cartesian.m_Vertex =

@@ -48,6 +48,18 @@ class Mat4 {
         return mat4;
     }
 
+    static OrthoFrustum(left, right, bottom, top, near, far) {
+        let mat4 = new Mat4();
+        mat4.elements[0][0] = 2/(right - left);
+        mat4.elements[1][1] = 2/(top - bottom);
+        mat4.elements[2][2] = -2/(far - near);
+        mat4.elements[3][3] = 1;
+        mat4.elements[3][0] = -(right + left)/(right - left);
+        mat4.elements[3][1] = -(top + bottom)/(top - bottom);
+        mat4.elements[3][2] = -(far + near)/(far - near);
+        return mat4;
+    }
+
     static Cavaleira() {
         let mat4 = this.Identity();
         mat4.elements[2][2] = 1;
@@ -76,6 +88,16 @@ class Mat4 {
         mat4.elements[3][2] = -2 * far * near / (far - near);
         
         return mat4;
+    }
+
+    static Perspective(fovy, aspect, near, far) {
+        let top, bottom, left, right;
+        top = near * Math.tan(fovy * Math.PI/(180 * 2));
+        bottom = -top;
+        right = top * aspect;
+        left = -right;
+        
+        return this.Frustum(left, right, bottom, top, near, far);
     }
 
     static RotationZ(angle, x = 0, y = 0, z = 0) {

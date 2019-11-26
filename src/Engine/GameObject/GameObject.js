@@ -82,33 +82,33 @@ module.exports = class GameObject {
         for (let component of this.m_Components) {
             component.Update();
         }
-
+        return;
         if(!this.m_Active) return;
 
         if (!InputController.Instance().IsKeyDown(16)) {
-            if (InputController.Instance().IsKeyDown(65)) {
-                this.Transform.Rotate(this.m_RotationSpeed * Time.delta, 0, 0);
-            }
+            // if (InputController.Instance().IsKeyDown(65)) {
+            //     this.Transform.Rotate(this.m_RotationSpeed * Time.delta, 0, 0);
+            // }
 
-            if (InputController.Instance().IsKeyDown(68)) {
-                this.Transform.Rotate(-this.m_RotationSpeed * Time.delta, 0, 0);
-            }
+            // if (InputController.Instance().IsKeyDown(68)) {
+            //     this.Transform.Rotate(-this.m_RotationSpeed * Time.delta, 0, 0);
+            // }
 
-            if (InputController.Instance().IsKeyDown(87)) {
-                this.Transform.Rotate(0, this.m_RotationSpeed * Time.delta, 0);
-            }
+            // if (InputController.Instance().IsKeyDown(87)) {
+            //     this.Transform.Rotate(0, this.m_RotationSpeed * Time.delta, 0);
+            // }
 
-            if (InputController.Instance().IsKeyDown(83)) {
-                this.Transform.Rotate(0, -this.m_RotationSpeed * Time.delta, 0);
-            }
+            // if (InputController.Instance().IsKeyDown(83)) {
+            //     this.Transform.Rotate(0, -this.m_RotationSpeed * Time.delta, 0);
+            // }
 
-            if (InputController.Instance().IsKeyDown(81)) {
-                this.Transform.Rotate(0, 0, this.m_RotationSpeed * Time.delta);
-            }
+            // if (InputController.Instance().IsKeyDown(81)) {
+            //     this.Transform.Rotate(0, 0, this.m_RotationSpeed * Time.delta);
+            // }
 
-            if (InputController.Instance().IsKeyDown(69)) {
-                this.Transform.Rotate(0, 0, -this.m_RotationSpeed * Time.delta);
-            }
+            // if (InputController.Instance().IsKeyDown(69)) {
+            //     this.Transform.Rotate(0, 0, -this.m_RotationSpeed * Time.delta);
+            // }
 
             // if (InputController.Instance().IsKeyDown(37)) {
             //     this.Transform.Translate(new Vec3(-this.m_TranslationSpeed * Time.delta, 0, 0));
@@ -134,29 +134,29 @@ module.exports = class GameObject {
             //     this.Transform.Translate(new Vec3(0, 0, this.m_TranslationSpeed * Time.delta));
             // }
         } else {
-            if (InputController.Instance().IsKeyDown(65)) {
-                this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationX(this.m_RotationSpeed * Time.delta));
-            }
+            // if (InputController.Instance().IsKeyDown(65)) {
+            //     this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationX(this.m_RotationSpeed * Time.delta));
+            // }
 
-            if (InputController.Instance().IsKeyDown(68)) {
-                this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationX(-this.m_RotationSpeed * Time.delta));
-            }
+            // if (InputController.Instance().IsKeyDown(68)) {
+            //     this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationX(-this.m_RotationSpeed * Time.delta));
+            // }
 
-            if (InputController.Instance().IsKeyDown(87)) {
-                this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationY(this.m_RotationSpeed * Time.delta));
-            }
+            // if (InputController.Instance().IsKeyDown(87)) {
+            //     this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationY(this.m_RotationSpeed * Time.delta));
+            // }
 
-            if (InputController.Instance().IsKeyDown(83)) {
-                this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationY(-this.m_RotationSpeed * Time.delta));
-            }
+            // if (InputController.Instance().IsKeyDown(83)) {
+            //     this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationY(-this.m_RotationSpeed * Time.delta));
+            // }
 
-            if (InputController.Instance().IsKeyDown(81)) {
-                this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationZ(-this.m_RotationSpeed * Time.delta));
-            }
+            // if (InputController.Instance().IsKeyDown(81)) {
+            //     this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationZ(-this.m_RotationSpeed * Time.delta));
+            // }
 
-            if (InputController.Instance().IsKeyDown(69)) {
-                this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationZ(this.m_RotationSpeed * Time.delta));
-            }
+            // if (InputController.Instance().IsKeyDown(69)) {
+            //     this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationZ(this.m_RotationSpeed * Time.delta));
+            // }
         }
     }
 

@@ -74,16 +74,37 @@ class Transform extends MonoBehavior {
         else this.m_Rotation = this.m_LocalRotation;
     }
 
+    RotateTo(xAngle, yAngle, zAngle) {
+        this.m_HasChanged = true;
+        this.m_LocalEulerAngles.x = xAngle;
+        this.m_LocalEulerAngles.y = yAngle;
+        this.m_LocalEulerAngles.z = zAngle;
+
+        const X1 = Mat4.RotationX(this.m_LocalEulerAngles.x);
+        const Z2 = Mat4.RotationZ(this.m_LocalEulerAngles.y);
+        const X3 = Mat4.RotationX(this.m_LocalEulerAngles.z);
+
+        const RotationMatrix = X1.multiplyMat4(Z2).multiplyMat4(X3);
+        this.m_LocalRotation = RotationMatrix;
+        if (this.m_Parent) this.m_Rotation = this.m_Parent.m_Rotation.multiplyMat4(this.m_LocalRotation);
+        else this.m_Rotation = this.m_LocalRotation;
+    }
+
     Translate(translation, relativeTo) {
         this.m_HasChanged = true;
         this.m_Position.Add(translation);
     }
 
-    Scale(x, y, z, global){
+    GoTo(pos) {
         this.m_HasChanged = true;
-        this.m_Scale.x *= x/global; 
-        this.m_Scale.y *= x/global; 
-        this.m_Scale.z *= x/global; 
+        this.m_Position = pos.Clone();
+    }
+
+    Scale(x, y, z, global) {
+        this.m_HasChanged = true;
+        this.m_Scale.x *= x / global;
+        this.m_Scale.y *= x / global;
+        this.m_Scale.z *= x / global;
     }
 }
 

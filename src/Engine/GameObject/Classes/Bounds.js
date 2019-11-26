@@ -1,6 +1,16 @@
 const { Vec3, Mat4 } = require('../../../Mat');
 const Plane = require('./Plane');
 
+const status = {
+    INSIDE: 0,
+    LEFT: 1,
+    RIGHT: 2,
+    BOTTOM: 4,
+    TOP: 8,
+    FRONT: 16,
+    BACK: 32
+};
+
 module.exports = class Bounds {
     /**@type {Vec3}*/
     m_Center;
@@ -73,5 +83,86 @@ module.exports = class Bounds {
     ClosestPointOnBounds(point) {
         let top = new Plane();
         top.m_Normal
+    }
+
+    _VertexCode(vec) {
+        let code = status.INSIDE;
+
+        if (vec.x < this.m_Min.x)
+            code |= status.LEFT;
+        else if (vec.x > this.m_Max.x)
+            code |= status.RIGHT;
+        if (vec.y < this.m_Min.y)
+            code |= status.BOTTOM;
+        else if (vec.y > this.m_Max.y)
+            code |= status.TOP;
+        if (vec.z < this.m_Min.z)
+            code |= status.BACK;
+        else if (vec.z > this.m_Max.z)
+            code |= status.FRONT;
+
+        return code;
+    }
+
+    ClipEdge(A, B) {
+        let code1 = this._VertexCode(A);
+        let code2 = this._VertexCode(B);
+
+        A = A.Clone();
+        B = B.Clone();
+
+        let accept = false;
+        let codeOut;
+        let x, y, z;
+        while (true) {
+
+            if ((code1 == 0) && (code2 == 0)) {
+                accept = true;                
+                return [A, B];
+            } else if (code1 & code2) {
+                return false;
+            } else {
+                if (code1 != 0) codeOut = code1;
+                else codeOut = code2;
+
+                if (codeOut & status.TOP) {
+                    x = A.x + (B.x - A.x) * (this.m_Max.y - A.y) / (B.y - A.y);
+                    z = A.z + (B.z - A.z) * (this.m_Max.y - A.y) / (B.y - A.y);
+                    y = this.m_Max.y;
+                } else if (codeOut & status.BOTTOM) {
+                    x = A.x + (B.x - A.x) * (this.Min.y - A.y) / (B.y - A.y);
+                    z = A.z + (B.z - A.z) * (this.m_Min.y - A.y) / (B.y - A.y);
+                    y = this.m_Min.y;
+                } else if (codeOut & status.RIGHT) {
+                    y = A.y + (B.y - A.y) * (this.m_Max.x - A.x) / (B.x - A.x);
+                    z = A.z + (B.z - A.z) * (this.m_Max.x - A.x) / (B.x - A.x);
+                    x = this.m_Max.x;
+                } else if (codeOut & status.LEFT) {
+                    y = A.y + (B.y - A.y) * (this.m_Min.x - A.x) / (B.x - A.x);
+                    z = A.z + (B.z - A.z) * (this.m_Min.x - A.x) / (B.x - A.x);
+                    x = this.m_Min.x;
+                } else if (codeOut & status.BACK) {
+                    x = A.x + (B.x - A.x) * (this.m_Min.z - A.z) / (B.z - A.z);
+                    y = A.y + (B.y - A.y) * (this.m_Min.z - A.z) / (B.z - A.z);
+                    z = this.m_Min.z;
+                } else if (codeOut & status.FRONT) {
+                    x = A.x + (B.x - A.x) * (this.m_Max.z - A.z) / (B.z - A.z);
+                    y = A.y + (B.y - A.y) * (this.m_Max.z - A.z) / (B.z - A.z);
+                    z = this.m_Max.z;
+                }
+            }
+
+            if (codeOut == code1) {
+                A.x = x;
+                A.y = y;
+                A.z = z;
+                code1 = this._VertexCode(A);
+            } else {
+                B.x = x;
+                B.y = y;
+                B.z = z;
+                code2 = this._VertexCode(B);
+            }
+        }
     }
 }

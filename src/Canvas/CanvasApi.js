@@ -3,6 +3,7 @@ const { Vec2, Vec3, Vec4, Mat3, Mat4 } = require('../Mat');
 const { Shader, VertexArray, Window, Camera } = require('../Renderer');
 const { BufferType, DrawMode } = require('../Constants');
 const Plane = require('../Engine/GameObject/Classes/Plane');
+const Bounds = require('../Engine/GameObject/Classes/Bounds');
 const Util = require('../Util');
 const Triangle = require('../Engine/GameObject/Classes/Triangle');
 
@@ -170,7 +171,7 @@ module.exports = class CanvasApi {
      */
     static DrawSphereSimetry(context, sphereCenter, center, x, y, z, color) {
         let camera = context.GetLocation(0);
-        let aT = camera.projectionViewMatrix.multiplyMat4(Mat4.Scale(0.5, -0.5, 1, 1).multiplyMat4(Mat4.Translation(0.5, 0.5, 0).multiplyMat4(Mat4.Scale(context.Width, context.Height, -100, 1))));
+        let aT = camera.projectionViewMatrix.multiplyMat4(Mat4.Scale(0.5, -0.5, 1, 1).multiplyMat4(Mat4.Translation(0.5, 0.5, 0).multiplyMat4(Mat4.Scale(context.Width, context.Height, -999.9, 1))));
         let bT = new Mat4(Util.invertMatrix(aT.elements));
 
         let radius = Vec3.Sub(sphereCenter, center).Norm();
@@ -315,7 +316,7 @@ module.exports = class CanvasApi {
 
         let camera = context.GetLocation(0);
 
-        let aT = camera.projectionViewMatrix.multiplyMat4(Mat4.Scale(0.5, -0.5, 1, 1).multiplyMat4(Mat4.Translation(0.5, 0.5, 0).multiplyMat4(Mat4.Scale(context.Width, context.Height, -100, 1))));
+        let aT = camera.projectionViewMatrix.multiplyMat4(Mat4.Scale(0.5, -0.5, 1, 1).multiplyMat4(Mat4.Translation(0.5, 0.5, 0).multiplyMat4(Mat4.Scale(context.Width, context.Height, -999.9, 1))));
         let bT = new Mat4(Util.invertMatrix(aT.elements));
 
         for (let i = x; i < dest.x; i++) {
@@ -337,7 +338,7 @@ module.exports = class CanvasApi {
      * @param {number} n 
      * @param {number} offset 
      */
-    static _DrawTriangle(context, n, offset) {
+    static _DrawTriangle(context, n, offset, lineStrip = false) {
         /**@type {Array} */
         const vertexBuffer = context.m_Buffers[context.m_BindedBuffers[BufferType.AVA_ARRAY_BUFFER]];
         /**@type {Array} */
@@ -347,7 +348,7 @@ module.exports = class CanvasApi {
 
         /**@type {Vec3} */
         let v1, v2, v3;
-        let color;
+        let color, normal;
 
         let vertexBufferSize = vertexBuffer.length;
         let indexBufferSize = indexBuffer.length;
@@ -367,13 +368,13 @@ module.exports = class CanvasApi {
         context.Shader.UploadData('lightPos', lightPos);
         context.Shader.UploadData('observatorPos', observatorPos);
 
-        let unView = Mat4.Scale(0.5, -0.5, 1, 1).multiplyMat4(Mat4.Translation(0.5, 0.5, 0).multiplyMat4(Mat4.Scale(context.Width, context.Height, -400, 1)));
-
+        let unView = Mat4.Scale(0.5, -0.5, 1, 1).multiplyMat4(Mat4.Translation(0.5, 0.5, 0).multiplyMat4(Mat4.Scale(context.Width, context.Height, -999.9, 1)));
         for (let triangle of triangles) {
             v1 = new Vec3((vertexBuffer[triangle[0] * n + offset]), (vertexBuffer[triangle[0] * n + 1 + offset]), vertexBuffer[triangle[0] * n + 2 + offset]);
             v2 = new Vec3((vertexBuffer[triangle[1] * n + offset]), (vertexBuffer[triangle[1] * n + 1 + offset]), vertexBuffer[triangle[1] * n + 2 + offset]);
             v3 = new Vec3((vertexBuffer[triangle[2] * n + offset]), (vertexBuffer[triangle[2] * n + 1 + offset]), vertexBuffer[triangle[2] * n + 2 + offset]);
             color = new Vec4((vertexBuffer[triangle[0] * n + 3 + offset]), (vertexBuffer[triangle[0] * n + 4 + offset]), vertexBuffer[triangle[0] * n + 5 + offset], vertexBuffer[triangle[0] * n + 6 + offset]);
+            normal = new Vec3((vertexBuffer[triangle[0] * n + 7 + offset]), (vertexBuffer[triangle[0] * n + 8 + offset]), vertexBuffer[triangle[0] * n + 9 + offset]);
 
             if (transformation) {
                 v1 = v1.multiplyMat4(transformation);
@@ -385,20 +386,46 @@ module.exports = class CanvasApi {
             v2 = v2.multiplyMat4(camera.projectionViewMatrix);
             v3 = v3.multiplyMat4(camera.projectionViewMatrix);
 
-            //if (camera.m_Plane.DistanceToPoint(v1) < 0) continue;
 
-            if (v1.z < -1 || v1.z > 1 && v2.z < -1 || v2.z > 1 && v3.z < -1 || v3.z > 1) {
-                continue;
+            // if ((v1.z < -1 || v1.z > 1) && (v2.z < -1 || v2.z > 1) && (v3.z < -1 || v3.z > 1)) {
+            //     continue;
+            // }
+            let clipped;
+            if (!(clipped = this.Clip(context, v1, v2, v3))) continue;
+
+            for (let i = 0; i < clipped.length; i++) {
+                clipped[i] = clipped[i].multiplyMat4(unView);
             }
-
-            //if (!window.Clip(v1, v2) && !window.Clip(v2, v3) && !window.Clip(v3, v1)) continue;
 
             v1 = v1.multiplyMat4(unView);
             v2 = v2.multiplyMat4(unView);
             v3 = v3.multiplyMat4(unView);
 
-            test.push(new Triangle(v1, v2, v3, color));
-            //this.DrawTriangle(context, v1, v2, v3, color);
+
+            context.Shader.UploadData('normal', normal.Normalize());
+            if (!lineStrip) {
+                if (clipped.length == 6) {
+                    this.DrawTriangle(context, clipped[0], clipped[2], clipped[5], color, normal);
+                    this.DrawTriangle(context, clipped[1], clipped[3], clipped[5], color, normal);
+                    this.DrawTriangle(context, clipped[0], clipped[1], clipped[5], color, normal);
+                    this.DrawTriangle(context, clipped[1], clipped[4], clipped[5], color, normal);
+                } else if (clipped.length == 4) {
+                    // this.DrawTriangle(context, clipped[0], clipped[2], clipped[5], color, normal);
+                    // this.DrawTriangle(context, clipped[1], clipped[3], clipped[5], color, normal);
+                    // this.DrawTriangle(context, clipped[0], clipped[1], clipped[5], color, normal);
+                    // this.DrawTriangle(context, clipped[1], clipped[4], clipped[5], color, normal);
+                } else if (clipped.length == 2) {
+
+                }
+                //this.DrawTriangle(context, v1, v2, v3, color, normal);
+            } else {
+                for (let i = 0; i < clipped.length; i += 2) {
+                    this.DrawLine(context, clipped[i], clipped[i + 1], color);
+                }
+                // this.DrawLine(context, v1, v2, color);
+                // this.DrawLine(context, v2, v3, color);
+                // this.DrawLine(context, v3, v1, color);
+            }
         }
         test = this._ProcessTriangles(test);
 
@@ -407,12 +434,55 @@ module.exports = class CanvasApi {
         }
     }
 
+    static Clip(context, v1, v2, v3, striped = true) {
+        const camera = context.GetLocation(0);
+        let bounds = new Bounds();
+        bounds.SetMinMax(
+            new Vec3(-1, -1, -3.0),
+            new Vec3(1, 1, -1)
+        );
+
+        let a = false, b = false, c = false;
+
+        let vertex = [], resultingVertex;
+
+        let result = bounds.ClipEdge(v1, v2);
+        if (result) {
+            a = b = true;
+            vertex.push(...result);
+        }
+
+        result = bounds.ClipEdge(v1, v3);
+        if (result) {
+            a = c = true;
+            vertex.push(...result);
+        }
+
+        result = bounds.ClipEdge(v2, v3);
+        if (result) {
+            b = c = true;
+            vertex.push(...result);
+        }
+
+        if (result.length == 0) return false;
+
+        if(a + b + c == 2){
+            let outsideVertex;
+            if(!a) outsideVertex = v1;
+            if(!b) outsideVertex = v2;
+            if(!c) outsideVertex = v3;
+        }
+
+        return vertex;
+    }
+
     /**
      * 
      * @param {Array<Triangle>} triangles 
      */
     static _ProcessTriangles(triangles) {
         let rendering = triangles.slice();
+        return rendering;
         for (let i = 0; i < rendering.length - 1; i++) {
             for (let j = i + 1; j < rendering.length; j++) {
                 let plane = new Plane();
@@ -458,11 +528,11 @@ module.exports = class CanvasApi {
      * @param {*} color2 
      * @param {*} color3 
      */
-    static DrawTriangle(context, v1, v2, v3, color1, color2, color3) {
+    static DrawTriangle(context, v1, v2, v3, color1, normal) {
         const plane = new Plane();
         let camera = context.GetLocation(0);
 
-        let aT = camera.projectionViewMatrix.multiplyMat4(Mat4.Scale(0.5, -0.5, 1, 1).multiplyMat4(Mat4.Translation(0.5, 0.5, 0).multiplyMat4(Mat4.Scale(context.Width, context.Height, -100, 1))));
+        let aT = camera.projectionViewMatrix.multiplyMat4(Mat4.Scale(0.5, -0.5, 1, 1).multiplyMat4(Mat4.Translation(0.5, 0.5, 0).multiplyMat4(Mat4.Scale(context.Width, context.Height, -999.9, 1))));
         let bT = new Mat4(Util.invertMatrix(aT.elements));
 
         plane.Set3Points(v1.multiplyMat4(bT), v2.multiplyMat4(bT), v3.multiplyMat4(bT));
@@ -507,11 +577,11 @@ module.exports = class CanvasApi {
             }
         }
 
-        context.Shader.UploadData('normal', plane.m_Normal.Normalize());
+        context.Shader.UploadData('normal', normal.Normalize());
         if (B.y == C.y) {
-            this._FillBottomFlatTriangle(context, A, B, C, color1, color2, color3);
+            this._FillBottomFlatTriangle(context, A, B, C, color1);
         } else if (A.y == B.y) {
-            this._FillTopFlatTriangle(context, A, B, C, color1, color2, color3);
+            this._FillTopFlatTriangle(context, A, B, C, color1);
         } else {
             let plane = new Plane();
             plane.Set3Points(A, B, C);
@@ -520,8 +590,8 @@ module.exports = class CanvasApi {
             let z = plane.m_Normal.z != 0 ? (-plane.m_Distance - plane.m_Normal.x * x - plane.m_Normal.y * y) / plane.m_Normal.z : B.z;
             let D = new Vec3(x, y, z);
             this._DrawHorizontalLine(context, B, D, color1);
-            this._FillBottomFlatTriangle(context, A, B, D, color1, color2, color3);
-            this._FillTopFlatTriangle(context, B, D, C, color1, color2, color3);
+            this._FillBottomFlatTriangle(context, A, B, D, color1);
+            this._FillTopFlatTriangle(context, B, D, C, color1);
         }
     }
 
@@ -645,6 +715,9 @@ module.exports = class CanvasApi {
             case DrawMode.AVA_TRIANGLES:
                 this._DrawTriangle(context, n, offset);
                 break;
+            case DrawMode.AVA_TRIANGLES_STRIP:
+                this._DrawTriangle(context, n, offset, true);
+                break;
             case DrawMode.AVA_CIRCLE:
                 this._DrawCircle(context, n, offset);
                 break;
@@ -682,6 +755,8 @@ module.exports = class CanvasApi {
         const transformation = context.GetLocation(1);
 
         const window = context.GetLocation(2);
+        let unView = Mat4.Scale(0.5, -0.5, 1, 1).multiplyMat4(Mat4.Translation(0.5, 0.5, 0).multiplyMat4(Mat4.Scale(context.Width, context.Height, -999.9, 1)));
+
         for (let line of lines) {
             v1 = new Vec3((vertexBuffer[line[0] * n + offset]), (vertexBuffer[line[0] * n + 1 + offset]), vertexBuffer[line[0] * n + 2]);
             v2 = new Vec3((vertexBuffer[line[1] * n + offset]), (vertexBuffer[line[1] * n + 1 + offset]), vertexBuffer[line[1] * n + 2]);
@@ -694,15 +769,16 @@ module.exports = class CanvasApi {
             v1 = v1.multiplyMat4((camera.projectionViewMatrix));
             v2 = v2.multiplyMat4((camera.projectionViewMatrix));
 
+            if (v1.z < -1 || v1.z > 1 && v2.z < -1 || v2.z > 1) {
+                continue;
+            }
+
             if (!window.Clip(v1, v2)) continue;
 
-            v1.x = (v1.x / 2 + 0.5) * context.Width;
-            v1.y = (-v1.y / 2 + 0.5) * context.Height;
+            v1 = v1.multiplyMat4(unView);
+            v2 = v2.multiplyMat4(unView);
 
-            v2.x = (v2.x / 2 + 0.5) * context.Width;
-            v2.y = (-v2.y / 2 + 0.5) * context.Height;
-
-            this.DrawLine(context, v1, v2, { x: 0, y: 0, z: 0, w: 1.0 });
+            this.DrawLine(context, v1, v2, { x: 1, y: 1, z: 1, w: 1.0 });
         }
     }
 
@@ -777,13 +853,12 @@ module.exports = class CanvasApi {
 
         context.Shader.UploadData('lightPos', lightPos);
         context.Shader.UploadData('observatorPos', observatorPos);
-        let unView = Mat4.Scale(0.5, -0.5, 1, 1).multiplyMat4(Mat4.Translation(0.5, 0.5, 0).multiplyMat4(Mat4.Scale(context.Width, context.Height, -100, 1)));
+        let unView = Mat4.Scale(0.5, -0.5, 1, 1).multiplyMat4(Mat4.Translation(0.5, 0.5, 0).multiplyMat4(Mat4.Scale(context.Width, context.Height, -999.9, 1)));
 
         for (let circle of circles) {
             let radius = vertexBuffer[circle * n + 3 + offset];
             v1 = new Vec3((vertexBuffer[circle * n + offset]), (vertexBuffer[circle * n + 1 + offset]), vertexBuffer[circle * n + 2 + offset]);
-            v2 = new Vec3((vertexBuffer[circle * n + offset]) + radius * 0.707, (vertexBuffer[circle * n + 1 + offset]) + radius * 0.707, vertexBuffer[circle * n + 2 + offset]);
-
+            v2 = new Vec3((vertexBuffer[circle * n + offset]), (vertexBuffer[circle * n + 1 + offset]), vertexBuffer[circle * n + 2 + offset] - radius);
 
             let color = new Vec4(vertexBuffer[circle * n + 4 + offset], vertexBuffer[circle * n + 5 + offset], vertexBuffer[circle * n + 6 + offset], vertexBuffer[circle * n + 7 + offset])
             if (transformation) {
@@ -794,6 +869,7 @@ module.exports = class CanvasApi {
 
             v1 = v1.multiplyMat4((camera.projectionViewMatrix));
             v2 = v2.multiplyMat4((camera.projectionViewMatrix));
+            //console.log(v1, v2, new Vec3(0, 0, 0).multiplyMat4((camera.projectionViewMatrix)));
 
             if (v1.z < -1 || v1.z > 1 && v2.z < -1 || v2.z > 1) continue;
 
@@ -801,7 +877,8 @@ module.exports = class CanvasApi {
             v2 = v2.multiplyMat4(unView);
 
 
-            radius = Vec3.Sub(v1, v2).Norm();
+            //radius = Vec3.Sub(v1, v2).Norm();
+            return;
 
             this.DrawSphere(context, new Vec3(v1.x, v1.y, v1.z), new Vec3(0, 0, 1), radius, color);
         }

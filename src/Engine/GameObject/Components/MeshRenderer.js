@@ -22,6 +22,8 @@ module.exports = class MeshRenderer extends MonoBehavior {
     /**@type {Mat4} */
     m_Transform;
 
+    m_Strip = false;
+
     Start() {
         this.m_VBO = CanvasApi.AvaCreateBuffer(CanvasApi.s_Context, 1);
         this.m_EBO = CanvasApi.AvaCreateBuffer(CanvasApi.s_Context, 1);
@@ -46,7 +48,11 @@ module.exports = class MeshRenderer extends MonoBehavior {
         else
             CanvasApi.SetLocation(CanvasApi.s_Context, 1, this.GameObject.Transform.m_Transform);
 
-        CanvasApi.AvaDrawElements(CanvasApi.s_Context, DrawMode.AVA_TRIANGLES, 7);
+        if(this.m_Strip){
+            CanvasApi.AvaDrawElements(CanvasApi.s_Context, DrawMode.AVA_TRIANGLES_STRIP, 10);
+        }else{
+            CanvasApi.AvaDrawElements(CanvasApi.s_Context, DrawMode.AVA_TRIANGLES, 10);
+        }
     }
 
     /**@type {Mesh} */
