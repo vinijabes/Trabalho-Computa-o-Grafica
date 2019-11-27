@@ -360,12 +360,9 @@ module.exports = class CanvasApi {
         const transformation = context.GetLocation(1);
         const window = context.GetLocation(2);
         let test = [];
-
-        let lightPos = new Vec3(0, 0, 100)
         let observatorPos = camera.m_Transform.m_Position.Clone()//new Vec3(100, 0, 100)//Vec3.Mult(camera.m_Transform.m_Position, 1);
         observatorPos.z += 30;
 
-        context.Shader.UploadData('lightPos', lightPos);
         context.Shader.UploadData('observatorPos', observatorPos);
 
         let unView = Mat4.Scale(0.5, -0.5, 1, 1).multiplyMat4(Mat4.Translation(0.5, 0.5, 0).multiplyMat4(Mat4.Scale(context.Width, context.Height, -999.9, 1)));
@@ -401,14 +398,13 @@ module.exports = class CanvasApi {
             v2 = v2.multiplyMat4(unView);
             v3 = v3.multiplyMat4(unView);
 
-
             context.Shader.UploadData('normal', normal.Normalize());
             if (!lineStrip) {
                 if (clipped.length == 6) {
-                    this.DrawTriangle(context, clipped[0], clipped[2], clipped[5], color, normal);
-                    this.DrawTriangle(context, clipped[1], clipped[3], clipped[5], color, normal);
-                    this.DrawTriangle(context, clipped[0], clipped[1], clipped[5], color, normal);
-                    this.DrawTriangle(context, clipped[1], clipped[4], clipped[5], color, normal);
+                    // this.DrawTriangle(context, clipped[0], clipped[2], clipped[5], color, normal);
+                    // this.DrawTriangle(context, clipped[1], clipped[3], clipped[5], color, normal);
+                    // this.DrawTriangle(context, clipped[0], clipped[1], clipped[5], color, normal);
+                    // this.DrawTriangle(context, clipped[1], clipped[4], clipped[5], color, normal);
                 } else if (clipped.length == 4) {
                     // this.DrawTriangle(context, clipped[0], clipped[2], clipped[5], color, normal);
                     // this.DrawTriangle(context, clipped[1], clipped[3], clipped[5], color, normal);
@@ -417,7 +413,8 @@ module.exports = class CanvasApi {
                 } else if (clipped.length == 2) {
 
                 }
-                //this.DrawTriangle(context, v1, v2, v3, color, normal);
+
+                this.DrawTriangle(context, v1, v2, v3, color, normal);
             } else {
                 for (let i = 0; i < clipped.length; i += 2) {
                     this.DrawLine(context, clipped[i], clipped[i + 1], color);
@@ -466,11 +463,11 @@ module.exports = class CanvasApi {
 
         if (result.length == 0) return false;
 
-        if(a + b + c == 2){
+        if (a + b + c == 2) {
             let outsideVertex;
-            if(!a) outsideVertex = v1;
-            if(!b) outsideVertex = v2;
-            if(!c) outsideVertex = v3;
+            if (!a) outsideVertex = v1;
+            if (!b) outsideVertex = v2;
+            if (!c) outsideVertex = v3;
         }
 
         return vertex;
@@ -846,14 +843,16 @@ module.exports = class CanvasApi {
         const camera = context.GetLocation(0);
         const transformation = context.GetLocation(1);
 
-        let lightPos = new Vec3(0, 0, 100);
-
         let observatorPos = camera.m_Transform.m_Position.Clone();//Vec3.Mult(camera.m_Transform.m_Position, 1);
         observatorPos.z += 30;
-
-        context.Shader.UploadData('lightPos', lightPos);
         context.Shader.UploadData('observatorPos', observatorPos);
         let unView = Mat4.Scale(0.5, -0.5, 1, 1).multiplyMat4(Mat4.Translation(0.5, 0.5, 0).multiplyMat4(Mat4.Scale(context.Width, context.Height, -999.9, 1)));
+
+        let bounds = new Bounds();
+        bounds.SetMinMax(
+            new Vec3(-1, -1, -3.0),
+            new Vec3(1, 1, -1)
+        );
 
         for (let circle of circles) {
             let radius = vertexBuffer[circle * n + 3 + offset];
@@ -871,14 +870,13 @@ module.exports = class CanvasApi {
             v2 = v2.multiplyMat4((camera.projectionViewMatrix));
             //console.log(v1, v2, new Vec3(0, 0, 0).multiplyMat4((camera.projectionViewMatrix)));
 
-            if (v1.z < -1 || v1.z > 1 && v2.z < -1 || v2.z > 1) continue;
+            if(!bounds.Contains(v1)) continue;
 
             v1 = v1.multiplyMat4(unView);
             v2 = v2.multiplyMat4(unView);
 
 
             //radius = Vec3.Sub(v1, v2).Norm();
-            return;
 
             this.DrawSphere(context, new Vec3(v1.x, v1.y, v1.z), new Vec3(0, 0, 1), radius, color);
         }

@@ -34,6 +34,7 @@ TestObject.AddComponent(MeshRenderer);
 
 let shader = new Shader();
 shader.UploadData('phong', true);
+shader.UploadData('lightPos', new Vec3(0, 0, 100));
 shader.Compile((ava, location) => {
   let N = location.normal;
   let L = Vec3.Sub(location.lightPos, ava.position).Normalize();
@@ -69,6 +70,7 @@ sphere.m_Material.m_N = 50;
 sphere.AddComponent(SphereRenderer);
 sphere.GetComponent(SphereRenderer).Radius = 50;
 sphere.GetComponent(SphereRenderer).Color = new Vec4(1, 0, 1, 1);
+sphere.GetComponent(SphereRenderer).m_Strip = true;
 
 let sphere2 = new GO();
 sphere2.m_Material.m_Shader = shader;
@@ -114,7 +116,7 @@ const indicesPlano = [
 
 plane.GetComponent(MeshRenderer).m_Mesh.Index = indicesPlano;
 plane.GetComponent(MeshRenderer).m_Mesh.Vertex = verticesPlano;
-plane.GetComponent(MeshRenderer).m_Strip = true;
+//plane.GetComponent(MeshRenderer).m_Strip = true;
 
 let boundings = new GO();
 boundings.AddComponent(MeshRenderer);
@@ -204,7 +206,7 @@ let projection = () => {
 
 camera.SetProjection(projection());
 //camera.SetView(Mat4.Viewport(-CanvasContext.Width / 2, CanvasContext.Width / 2, -CanvasContext.Height / 2, CanvasContext.Height / 2, -1, 1));
-camera.Follow(plane);
+//camera.Follow(sphere);
 
 let viewport = Mat4.Viewport(-CanvasContext.Width / 2, CanvasContext.Width / 2, -CanvasContext.Height / 2, CanvasContext.Height / 2, -1, 1);
 
@@ -432,7 +434,7 @@ var update = (delta) => {
 
   sphere.Update();
   //sphere2.Update();
-  plane.Update();
+  //plane.Update();
   //boundings.Update();
   //light.Update();
   //TestObject.Update();
