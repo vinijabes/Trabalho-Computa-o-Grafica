@@ -204,7 +204,7 @@ let projection = () => {
 
 camera.SetProjection(projection());
 //camera.SetView(Mat4.Viewport(-CanvasContext.Width / 2, CanvasContext.Width / 2, -CanvasContext.Height / 2, CanvasContext.Height / 2, -1, 1));
-//camera.Follow(plane);
+camera.Follow(plane);
 
 let viewport = Mat4.Viewport(-CanvasContext.Width / 2, CanvasContext.Width / 2, -CanvasContext.Height / 2, CanvasContext.Height / 2, -1, 1);
 

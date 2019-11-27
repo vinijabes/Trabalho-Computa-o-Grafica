@@ -133,10 +133,10 @@ module.exports = class Camera {
             this.m_Transform.Translate(this.Front.Mult(delta * this.m_TranslationSpeed));
         }
 
-        if (this.following) this.SetLookAt(this.following.Transform.m_Position);
-        else {
-            this.SetLookAtDirection(this.Back);
-        }
+        this.SetLookAtDirection(this.Back);
+        // if (this.following) this.SetLookAt(this.following.Transform.m_Position);
+        // else {
+        // }
 
         this.m_Transform.Update();
         this.m_Transformation = this.m_Transform.m_TransformationMatrix;
@@ -159,6 +159,11 @@ module.exports = class Camera {
     get unProject() { return new Mat4(Utils.invertMatrix(this.projectionViewMatrix.elements)); }
     get Position() { return this.m_Transform.m_Position; }
     get Back() {
+        if (this.following) {
+            let v = Vec3.Sub(this.Position, this.following.Transform.m_Position).Mult(-1).Normalize();
+            if (v.Norm() > 0) return v;
+        }
+
         let back = new Vec3();
         let pitch = Math.PI / 180 * this.m_Transform.m_LocalEulerAngles.x;
         let yaw = Math.PI / 180 * this.m_Transform.m_LocalEulerAngles.y;
@@ -173,6 +178,11 @@ module.exports = class Camera {
     }
 
     get Up() {
+        if (this.following) {
+            let v = Vec3.Sub(this.Position, this.following.Transform.m_Position).Mult(-1).multiplyMat4(Mat4.RotationX(90, 0, 0)).Normalize();
+            if (v.Norm() > 0) return v;
+        }
+
         let up = new Vec3();
         let pitch = Math.PI / 180 * (this.m_Transform.m_LocalEulerAngles.x + 90);
         let yaw = Math.PI / 180 * this.m_Transform.m_LocalEulerAngles.y;
