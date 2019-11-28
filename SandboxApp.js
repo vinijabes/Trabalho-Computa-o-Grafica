@@ -18,6 +18,7 @@ const Util = require('./src/Util/index');
 const BilinearSurface = require('./Sandbox/BilinearSurface');
 const SeedFill = require('./Sandbox/SeedFill');
 const ColorInvertion = require('./Sandbox/ColorInvertion');
+const Sweeping = require('./Sandbox/Sweeping');
 
 const gameObjectsSelect = document.getElementById("gameobjects");
 const c = document.getElementById('view');
@@ -124,6 +125,16 @@ let CI = new ColorInvertion([
 ]);
 
 /**COLOR INVERTION END */
+
+/**SWEEPING INIT */
+
+let SW = new Sweeping();
+SW.AddPoint(new Vec3(30, 0, 0));
+SW.AddPoint(new Vec3(70, 40, 0));
+SW.AddPoint(new Vec3(100, 100, 0));
+SW.AddPoint(new Vec3(150, 60, 0));
+
+/**SWEEPING END */
 
 let plane = new GO();
 plane.m_Material.m_Ks = 0.4;
@@ -241,9 +252,9 @@ TestObject.Transform.Scale(1, 1, 1, 1 / 4);
 TestObject.Transform
 
 let camera = new CavaleiraCamera();
-let projection = () => {
+let projection = () => {  
   return Mat4.Cavaleira();
-  //return Mat4.OrthoFrustum(-1.0, 1.0, -1.0, 1.0, 0.1, 1000);
+  return Mat4.OrthoFrustum(-1.0, 1.0, -1.0, 1.0, 0.1, 1000);
   //return Mat4.Perspective(45, 1, 0.1, 1000)
 };//Mat4.Frustum(-1.0, 1.0, -1.0, 1.0, 50, 600);//Mat4.Ortho();//
 
@@ -477,7 +488,8 @@ var update = (delta) => {
 
   //object.Update(delta);
   //seed.Update();
-  CI.Update();
+  //CI.Update();
+  SW.Update();
 
   //sphere.Update();
   //sphere2.Update();

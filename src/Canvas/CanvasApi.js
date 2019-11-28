@@ -761,6 +761,7 @@ module.exports = class CanvasApi {
             new Vec3(-1, -1, -10.0),
             new Vec3(1, 1, 10)
         );
+
         for (let line of lines) {
             v1 = new Vec3((vertexBuffer[line[0] * n + offset]), (vertexBuffer[line[0] * n + 1 + offset]), vertexBuffer[line[0] * n + 2]);
             v2 = new Vec3((vertexBuffer[line[1] * n + offset]), (vertexBuffer[line[1] * n + 1 + offset]), vertexBuffer[line[1] * n + 2]);
@@ -770,19 +771,21 @@ module.exports = class CanvasApi {
                 v1 = v1.multiplyMat4(transformation);
                 v2 = v2.multiplyMat4(transformation);
             }
-
+            
             v1 = v1.multiplyMat4((camera.projectionViewMatrix));
             v2 = v2.multiplyMat4((camera.projectionViewMatrix));
+            //console.log(v2);
             if (!camera.Contains(v1) && camera.Contains(v2)) {
                 continue;
             }
-
+            
             //console.log(v1);
 
             if (!window.Clip(v1, v2)) continue;
 
             v1 = v1.multiplyMat4(unView);
             v2 = v2.multiplyMat4(unView);
+
 
             this.DrawLine(context, v1, v2, color);
         }
