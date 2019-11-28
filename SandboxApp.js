@@ -3,6 +3,7 @@ const Canvas = Ava.Canvas;
 const GO = Ava.Engine.GameObject;
 const { Mat4, Vec3, Vec2, Vec4 } = Ava.Math;
 const Camera = Ava.Renderer.Camera;
+const CavaleiraCamera = Ava.Renderer.CavaleiraCamera;
 const VertexArray = Ava.Renderer.VertexArray;
 const Window = Ava.Renderer.Window;
 const Shader = Ava.Renderer.Shader;
@@ -10,9 +11,13 @@ const UI = require('./src/UI');
 const TransformationUI = require('./src/Scripts/TransformationUI');
 const MeshRenderer = Ava.Engine.Components.MeshRenderer;
 const SphereRenderer = Ava.Engine.Components.SphereRenderer;
+const PixelRenderer = Ava.Engine.Components.PixelRenderer;
 const RendererSystem = Ava.Engine.RendererSystem;
 const Time = Ava.Engine.Time;
 const Util = require('./src/Util/index');
+const BilinearSurface = require('./Sandbox/BilinearSurface');
+const SeedFill = require('./Sandbox/SeedFill');
+const ColorInvertion = require('./Sandbox/ColorInvertion');
 
 const gameObjectsSelect = document.getElementById("gameobjects");
 const c = document.getElementById('view');
@@ -82,6 +87,43 @@ sphere2.GetComponent(SphereRenderer).Radius = 35;
 sphere2.GetComponent(SphereRenderer).Color = new Vec4(1, 0, 0, 1);
 sphere2.Transform.Translate(new Vec3(100, 0, 35));
 
+/**RAMPA INIT */
+
+let b1 = new BilinearSurface(new Vec3(0, 0, 80), new Vec3(20, 0, 80), new Vec3(0, 0, 0), new Vec3(20, 0, 0), new Vec4(0, 0, 1, 1));
+let b2 = new BilinearSurface(new Vec3(20, 0, 80), new Vec3(20, 20, 80), new Vec3(20, 0, 0), new Vec3(20, 20, 0), new Vec4(1, 1, 0, 1));
+let b3 = new BilinearSurface(new Vec3(0, 20, 80), new Vec3(20, 20, 80), new Vec3(0, 0, 80), new Vec3(20, 0, 80), new Vec4(0, 1, 0, 1));
+let b4 = new BilinearSurface(new Vec3(20, 20, 0), new Vec3(60, 20, 0), new Vec3(20, 0, 0), new Vec3(60, 0, 0), new Vec4(1, 0, 0, 1));
+let b5 = new BilinearSurface(new Vec3(20, 20, 80), new Vec3(40, 20, 0), new Vec3(20, 0, 80), new Vec3(40, 0, 0), new Vec4(0, 1, 1, 1));
+
+let object = new GO();
+object.AddChild(b1);
+object.AddChild(b2);
+object.AddChild(b3);
+object.AddChild(b4);
+object.AddChild(b5);
+
+object.m_Center = new Vec3(30, 10, 40);
+object.Transform.Scale(1, 1, 1, 0.5);
+
+/**RAMPA END */
+
+/**SEED FILL INIT */
+
+let seed = new SeedFill();
+
+/**SEED FILL END */
+
+/**COLOR INVERTION INIT */
+
+let CI = new ColorInvertion([
+  { v1: new Vec3(0, 0, 0), v2: new Vec3(0, 100, 0), color: new Vec4(1, 1, 1, 1) },
+  { v1: new Vec3(0, 100, 0), v2: new Vec3(70, 50, 0), color: new Vec4(1, 1, 1, 1) },
+  { v1: new Vec3(70, 50, 0), v2: new Vec3(140, 100, 0), color: new Vec4(1, 1, 1, 1) },
+  { v1: new Vec3(140, 100, 0), v2: new Vec3(140, 0, 0), color: new Vec4(1, 1, 1, 1) },
+  { v1: new Vec3(140, 0, 0), v2: new Vec3(0, 0, 0), color: new Vec4(1, 1, 1, 1) },
+]);
+
+/**COLOR INVERTION END */
 
 let plane = new GO();
 plane.m_Material.m_Ks = 0.4;
@@ -198,14 +240,15 @@ TestObject.GetComponent(MeshRenderer).m_Mesh.Index = [
 TestObject.Transform.Scale(1, 1, 1, 1 / 4);
 TestObject.Transform
 
-let camera = new Camera();
+let camera = new CavaleiraCamera();
 let projection = () => {
-  return Mat4.OrthoFrustum(-CanvasContext.Width / 2, CanvasContext.Width / 2, -CanvasContext.Height / 2, CanvasContext.Height / 2, 0.1, 1000);
+  return Mat4.Cavaleira();
+  //return Mat4.OrthoFrustum(-1.0, 1.0, -1.0, 1.0, 0.1, 1000);
   //return Mat4.Perspective(45, 1, 0.1, 1000)
 };//Mat4.Frustum(-1.0, 1.0, -1.0, 1.0, 50, 600);//Mat4.Ortho();//
 
 camera.SetProjection(projection());
-//camera.SetView(Mat4.Viewport(-CanvasContext.Width / 2, CanvasContext.Width / 2, -CanvasContext.Height / 2, CanvasContext.Height / 2, -1, 1));
+camera.SetView(Mat4.Viewport(-CanvasContext.Width / 2, CanvasContext.Width / 2, -CanvasContext.Height / 2, CanvasContext.Height / 2, -1, 1));
 //camera.Follow(sphere);
 
 let viewport = Mat4.Viewport(-CanvasContext.Width / 2, CanvasContext.Width / 2, -CanvasContext.Height / 2, CanvasContext.Height / 2, -1, 1);
@@ -308,7 +351,7 @@ for (let i = 180; i >= 0; i--) {
 }
 
 camera.m_Transform.RotateTo(0, 90, 0);
-camera.m_Transform.GoTo(new Vec3(0, 0, 0))
+camera.m_Transform.GoTo(new Vec3(0, 0, -50))
 
 Canvas.CanvasApi.SetLocation(CanvasContext, 0, camera);
 Canvas.CanvasApi.SetLocation(CanvasContext, 2, new Window(new Vec2(-1, -1), new Vec2(2, 2)));
@@ -432,7 +475,11 @@ var update = (delta) => {
   shader.UploadData('phong', Checkbox.Value());
   //test.Update();
 
-  sphere.Update();
+  //object.Update(delta);
+  //seed.Update();
+  CI.Update();
+
+  //sphere.Update();
   //sphere2.Update();
   //plane.Update();
   //boundings.Update();
@@ -446,7 +493,7 @@ var update = (delta) => {
   let v3 = new Vec3(CanvasContext.Width / 2, CanvasContext.Height / 2, 999).multiplyMat4(camera.projectionViewMatrix);
   let v4 = camera.Position.multiplyMat4(camera.projectionViewMatrix);
 
-  let v5 = new Vec3(parseInt(vxInput.Value()), parseInt(vyInput.Value()), parseInt(vzInput.Value())).multiplyMat4(camera.projectionViewMatrix)  ;
+  let v5 = new Vec3(parseInt(vxInput.Value()), parseInt(vyInput.Value()), parseInt(vzInput.Value())).multiplyMat4(camera.projectionViewMatrix);
 
   let bounds = new Ava.Engine.Classes.Bounds();
   bounds.SetMinMax(v1, v3);
@@ -629,7 +676,7 @@ window.addEventListener("resize", () => {
   offscreen.width = c.width;
   offscreen.height = c.height;
   camera.SetProjection(projection());
-  //camera.SetView(Mat4.Viewport(-CanvasContext.Width / 2, CanvasContext.Width / 2, -CanvasContext.Height / 2, CanvasContext.Height / 2, -1, 1));
+  camera.SetView(Mat4.Viewport(-CanvasContext.Width / 2, CanvasContext.Width / 2, -CanvasContext.Height / 2, CanvasContext.Height / 2, -1, 1));
   Canvas.CanvasApi.SetLocation(CanvasContext, 0, camera);
 
   cartesian.m_Vertex =

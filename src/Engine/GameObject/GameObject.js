@@ -1,5 +1,5 @@
 const MonoBehavior = require('./MonoBehavior')
-const {Transform} = require('./Components');
+const { Transform } = require('./Components');
 const InputController = require('../InputController');
 const Time = require('../Time');
 const Vec3 = require('../../Mat/Vec3');
@@ -9,11 +9,18 @@ module.exports = class GameObject {
     /**@type {Array<MonoBehavior>} */
     m_Components = [];
 
+    m_Childs = [];
+
+    /**@type {GameObject} */
+    m_Parent = null;
+
     /**@type {boolean} */
     m_Active;
 
     /**@type {Material} */
     m_Material;
+
+    m_Center = new Vec3(0, 0, 0);
 
     m_Name;
     m_RotationSpeed = 60;
@@ -32,19 +39,30 @@ module.exports = class GameObject {
      * @param {MonoBehavior} ComponentType 
      */
     AddComponent(ComponentType) {
-        if(!ComponentType) throw ComponentType;
+        if (!ComponentType) throw ComponentType;
 
         if (ComponentType.prototype && ComponentType == ComponentType.prototype.constructor) {
             let newComponent = new ComponentType();
             newComponent.m_GameObject = this;
             newComponent.Start();
             this.m_Components.push(newComponent);
-        }else{
+            return newComponent;
+        } else {
             console.trace(ComponentType);
             ComponentType.m_GameObject = this;
             ComponentType.Start();
             this.m_Components.push(ComponentType);
         }
+    }
+
+    /**
+     * 
+     * @param {GameObject} child 
+     */
+    AddChild(child) {
+        child.m_Parent = this;
+        child.Transform.m_Parent = this.Transform;
+        this.m_Childs.push(child);
     }
 
     /**
@@ -82,57 +100,63 @@ module.exports = class GameObject {
         for (let component of this.m_Components) {
             component.Update();
         }
-        return;
-        if(!this.m_Active) return;
+
+        for (let child of this.m_Childs) {
+            child.Update();
+        }
+
+        if (!this.m_Active) return;
 
         if (!InputController.Instance().IsKeyDown(16)) {
-            // if (InputController.Instance().IsKeyDown(65)) {
-            //     this.Transform.Rotate(this.m_RotationSpeed * Time.delta, 0, 0);
-            // }
+            if (this.m_Parent) this.Transform.m_Parent = this.m_Parent.Transform;
+            else this.Transform.m_Parent = null;
+            if (InputController.Instance().IsKeyDown(65)) {
+                this.Transform.Rotate(this.m_RotationSpeed * Time.delta, 0, 0, this.m_Center);
+            }
 
-            // if (InputController.Instance().IsKeyDown(68)) {
-            //     this.Transform.Rotate(-this.m_RotationSpeed * Time.delta, 0, 0);
-            // }
+            if (InputController.Instance().IsKeyDown(68)) {
+                this.Transform.Rotate(-this.m_RotationSpeed * Time.delta, 0, 0, this.m_Center);
+            }
 
-            // if (InputController.Instance().IsKeyDown(87)) {
-            //     this.Transform.Rotate(0, this.m_RotationSpeed * Time.delta, 0);
-            // }
+            if (InputController.Instance().IsKeyDown(87)) {
+                this.Transform.Rotate(0, this.m_RotationSpeed * Time.delta, 0, this.m_Center);
+            }
 
-            // if (InputController.Instance().IsKeyDown(83)) {
-            //     this.Transform.Rotate(0, -this.m_RotationSpeed * Time.delta, 0);
-            // }
+            if (InputController.Instance().IsKeyDown(83)) {
+                this.Transform.Rotate(0, -this.m_RotationSpeed * Time.delta, 0, this.m_Center);
+            }
 
-            // if (InputController.Instance().IsKeyDown(81)) {
-            //     this.Transform.Rotate(0, 0, this.m_RotationSpeed * Time.delta);
-            // }
+            if (InputController.Instance().IsKeyDown(81)) {
+                this.Transform.Rotate(0, 0, this.m_RotationSpeed * Time.delta, this.m_Center);
+            }
 
-            // if (InputController.Instance().IsKeyDown(69)) {
-            //     this.Transform.Rotate(0, 0, -this.m_RotationSpeed * Time.delta);
-            // }
+            if (InputController.Instance().IsKeyDown(69)) {
+                this.Transform.Rotate(0, 0, -this.m_RotationSpeed * Time.delta, this.m_Center);
+            }
 
-            // if (InputController.Instance().IsKeyDown(37)) {
-            //     this.Transform.Translate(new Vec3(-this.m_TranslationSpeed * Time.delta, 0, 0));
-            // }
+            if (InputController.Instance().IsKeyDown(37)) {
+                this.Transform.Translate(new Vec3(-this.m_TranslationSpeed * Time.delta, 0, 0));
+            }
 
-            // if (InputController.Instance().IsKeyDown(39)) {
-            //     this.Transform.Translate(new Vec3(this.m_TranslationSpeed * Time.delta, 0, 0));
-            // }
+            if (InputController.Instance().IsKeyDown(39)) {
+                this.Transform.Translate(new Vec3(this.m_TranslationSpeed * Time.delta, 0, 0));
+            }
 
-            // if (InputController.Instance().IsKeyDown(38)) {
-            //     this.Transform.Translate(new Vec3(0, this.m_TranslationSpeed * Time.delta, 0));
-            // }
+            if (InputController.Instance().IsKeyDown(38)) {
+                this.Transform.Translate(new Vec3(0, this.m_TranslationSpeed * Time.delta, 0));
+            }
 
-            // if (InputController.Instance().IsKeyDown(40)) {
-            //     this.Transform.Translate(new Vec3(0, -this.m_TranslationSpeed * Time.delta, 0));
-            // }
+            if (InputController.Instance().IsKeyDown(40)) {
+                this.Transform.Translate(new Vec3(0, -this.m_TranslationSpeed * Time.delta, 0));
+            }
 
-            // if (InputController.Instance().IsKeyDown(17)) {
-            //     this.Transform.Translate(new Vec3(0, 0, -this.m_TranslationSpeed * Time.delta));
-            // }
+            if (InputController.Instance().IsKeyDown(17)) {
+                this.Transform.Translate(new Vec3(0, 0, -this.m_TranslationSpeed * Time.delta));
+            }
 
-            // if (InputController.Instance().IsKeyDown(32)) {
-            //     this.Transform.Translate(new Vec3(0, 0, this.m_TranslationSpeed * Time.delta));
-            // }
+            if (InputController.Instance().IsKeyDown(32)) {
+                this.Transform.Translate(new Vec3(0, 0, this.m_TranslationSpeed * Time.delta));
+            }
         } else {
             // if (InputController.Instance().IsKeyDown(65)) {
             //     this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationX(this.m_RotationSpeed * Time.delta));

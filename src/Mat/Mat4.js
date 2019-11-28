@@ -48,6 +48,20 @@ class Mat4 {
         return mat4;
     }
 
+    static CavaleiraNova(left, right, bottom, top, near, far) {
+        let mat4 = new Mat4();
+        mat4.elements[0][0] = 2/(right - left);
+        mat4.elements[1][1] = 2/(top - bottom);
+        mat4.elements[2][2] = -2/(far - near);
+        mat4.elements[3][3] = 1;
+        mat4.elements[3][0] = -(right + left)/(right - left);
+        mat4.elements[3][1] = -(top + bottom)/(top - bottom);
+        mat4.elements[3][2] = -(far + near)/(far - near);
+        mat4.elements[2][0] = Math.cos(45 * Math.PI / 180);
+        mat4.elements[2][1] = Math.sin(45 * Math.PI / 180);
+        return mat4;
+    }
+
     static CabinetFrustum(left, right, bottom, top, near, far) {
         let mat4 = new Mat4();
         mat4.elements[0][0] = 2/(right - left);

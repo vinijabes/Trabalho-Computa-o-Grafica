@@ -721,6 +721,9 @@ module.exports = class CanvasApi {
             case DrawMode.AVA_SPHERE:
                 this._DrawSphere(context, n, offset);
                 break;
+            case DrawMode.AVA_PIXEL:
+                this._DrawPixel(context, n, offset);
+                break;
         }
         //return context.AvaDrawElements(mode, n, offset);
     }
@@ -753,10 +756,15 @@ module.exports = class CanvasApi {
 
         const window = context.GetLocation(2);
         let unView = Mat4.Scale(0.5, -0.5, 1, 1).multiplyMat4(Mat4.Translation(0.5, 0.5, 0).multiplyMat4(Mat4.Scale(context.Width, context.Height, -999.9, 1)));
-
+        let bounds = new Bounds();
+        bounds.SetMinMax(
+            new Vec3(-1, -1, -10.0),
+            new Vec3(1, 1, 10)
+        );
         for (let line of lines) {
             v1 = new Vec3((vertexBuffer[line[0] * n + offset]), (vertexBuffer[line[0] * n + 1 + offset]), vertexBuffer[line[0] * n + 2]);
             v2 = new Vec3((vertexBuffer[line[1] * n + offset]), (vertexBuffer[line[1] * n + 1 + offset]), vertexBuffer[line[1] * n + 2]);
+            let color = new Vec4(vertexBuffer[line[0] * n + 3 + offset], vertexBuffer[line[0] * n + 4 + offset], vertexBuffer[line[0] * n + 5 + offset], vertexBuffer[line[0] * n + 6 + offset])
 
             if (transformation) {
                 v1 = v1.multiplyMat4(transformation);
@@ -765,17 +773,18 @@ module.exports = class CanvasApi {
 
             v1 = v1.multiplyMat4((camera.projectionViewMatrix));
             v2 = v2.multiplyMat4((camera.projectionViewMatrix));
-
-            if (v1.z < -1 || v1.z > 1 && v2.z < -1 || v2.z > 1) {
+            if (!camera.Contains(v1) && camera.Contains(v2)) {
                 continue;
             }
+
+            //console.log(v1);
 
             if (!window.Clip(v1, v2)) continue;
 
             v1 = v1.multiplyMat4(unView);
             v2 = v2.multiplyMat4(unView);
 
-            this.DrawLine(context, v1, v2, { x: 1, y: 1, z: 1, w: 1.0 });
+            this.DrawLine(context, v1, v2, color);
         }
     }
 
@@ -870,7 +879,7 @@ module.exports = class CanvasApi {
             v2 = v2.multiplyMat4((camera.projectionViewMatrix));
             //console.log(v1, v2, new Vec3(0, 0, 0).multiplyMat4((camera.projectionViewMatrix)));
 
-            if(!bounds.Contains(v1)) continue;
+            if (!bounds.Contains(v1)) continue;
 
             v1 = v1.multiplyMat4(unView);
             v2 = v2.multiplyMat4(unView);
@@ -881,5 +890,54 @@ module.exports = class CanvasApi {
             this.DrawSphere(context, new Vec3(v1.x, v1.y, v1.z), new Vec3(0, 0, 1), radius, color);
         }
 
+    }
+
+    static _DrawPixel(context, n, offset) {
+        /**@type {Array} */
+        const vertexBuffer = context.m_Buffers[context.m_BindedBuffers[BufferType.AVA_ARRAY_BUFFER]];
+        /**@type {Array} */
+        const indexBuffer = context.m_Buffers[context.m_BindedBuffers[BufferType.AVA_ELEMENT_ARRAY_BUFFER]];
+        /**@type {VertexArray} */
+        const vertexArray = context.m_VertexArray;
+
+        /**@type {Vec3} */
+        let v1, normal, color;
+        let indexBufferSize = indexBuffer.length;
+
+        let pixels = indexBuffer.slice();
+
+        const camera = context.GetLocation(0);
+        const transformation = context.GetLocation(1);
+
+        let observatorPos = camera.m_Transform.m_Position.Clone();//Vec3.Mult(camera.m_Transform.m_Position, 1);
+        observatorPos.z += 30;
+        context.Shader.UploadData('observatorPos', observatorPos);
+        let unView = Mat4.Scale(0.5, -0.5, 1, 1).multiplyMat4(Mat4.Translation(0.5, 0.5, 0).multiplyMat4(Mat4.Scale(context.Width, context.Height, -999.9, 1)));
+
+        let aT = camera.projectionViewMatrix.multiplyMat4(Mat4.Scale(0.5, -0.5, 1, 1).multiplyMat4(Mat4.Translation(0.5, 0.5, 0).multiplyMat4(Mat4.Scale(context.Width, context.Height, -999.9, 1))));
+        let bT = new Mat4(Util.invertMatrix(aT.elements));
+
+        for (let pixel of pixels) {
+            v1 = new Vec3((vertexBuffer[pixel * n + offset]), (vertexBuffer[pixel * n + 1 + offset]), vertexBuffer[pixel * n + 2 + offset]);
+            color = new Vec4(vertexBuffer[pixel * n + 3 + offset], vertexBuffer[pixel * n + 4 + offset], vertexBuffer[pixel * n + 5 + offset], vertexBuffer[pixel * n + 6 + offset]);
+            normal = new Vec3((vertexBuffer[pixel[0] * n + 7 + offset]), (vertexBuffer[pixel[0] * n + 8 + offset]), vertexBuffer[pixel[0] * n + 9 + offset]);
+
+            if (transformation) {
+                v1 = v1.multiplyMat4(transformation);
+            }
+
+            context.Shader.UploadData('normal', normal);
+
+
+            v1 = v1.multiplyMat4((camera.projectionViewMatrix));
+            //console.log(v1);
+            if (!camera.Contains(v1)) continue;
+
+            v1 = v1.multiplyMat4(unView);
+
+            let data = { width: context.Width, height: context.Height, position: v1.Clone().multiplyMat4(bT), color: new Vec4(color.x, color.y, color.z, color.w) };
+            context.Shader.Execute(data);
+            this.DrawPixel(context, v1, data.color);
+        }
     }
 }

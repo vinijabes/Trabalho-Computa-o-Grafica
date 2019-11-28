@@ -4,6 +4,7 @@ const Plane = require('../Engine/GameObject/Classes/Plane');
 const CanvasApi = require('../Canvas/CanvasApi');
 const Utils = require('../Util');
 const { Vec3, Mat4 } = require('../Mat/index');
+const Bounds = require('../Engine/GameObject/Classes/Bounds');
 
 module.exports = class Camera {
     projection = new Mat4();
@@ -27,6 +28,12 @@ module.exports = class Camera {
         this.m_Plane.m_Normal = new Vec3(0, 0, 1);
         this.m_Transform.Rotate(0, 90, 0);
         this.SetLookAt(new Vec3(0, 0, 1));
+
+        this.m_Bounds = new Bounds();
+        this.m_Bounds.SetMinMax(
+            new Vec3(-1, -1, -3.0),
+            new Vec3(1, 1, -1)
+        );
     }
 
     SetProjection(projectionMatrix) {
@@ -83,55 +90,55 @@ module.exports = class Camera {
 
     Update(delta) {
         //console.log(this.m_Transform.m_Position);
-        if (InputController.Instance().IsKeyDown(37)) {
-            this.m_Transform.Translate(this.Right.Mult(-delta * this.m_TranslationSpeed));
-        }
+        // if (InputController.Instance().IsKeyDown(37)) {
+        //     this.m_Transform.Translate(this.Right.Mult(-delta * this.m_TranslationSpeed));
+        // }
 
-        if (InputController.Instance().IsKeyDown(39)) {
-            this.m_Transform.Translate(this.Right.Mult(delta * this.m_TranslationSpeed));
-        }
+        // if (InputController.Instance().IsKeyDown(39)) {
+        //     this.m_Transform.Translate(this.Right.Mult(delta * this.m_TranslationSpeed));
+        // }
 
-        if (InputController.Instance().IsKeyDown(38)) {
-            this.m_Transform.Translate(this.Up.Mult(-delta * this.m_TranslationSpeed));
-        }
+        // if (InputController.Instance().IsKeyDown(38)) {
+        //     this.m_Transform.Translate(this.Up.Mult(-delta * this.m_TranslationSpeed));
+        // }
 
-        if (InputController.Instance().IsKeyDown(40)) {
-            this.m_Transform.Translate(this.Up.Mult(delta * this.m_TranslationSpeed));
-        }
+        // if (InputController.Instance().IsKeyDown(40)) {
+        //     this.m_Transform.Translate(this.Up.Mult(delta * this.m_TranslationSpeed));
+        // }
 
-        if (InputController.Instance().IsKeyDown(65)) {
-            this.m_Transform.Rotate(this.m_RotationSpeed * delta, 0, 0);
-            this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationX(this.m_RotationSpeed * delta));
-            this.SetLookAtDirection(this.Back);
-            console.log(this.Front, this.m_Transform.m_LocalEulerAngles.x);
-        }
+        // if (InputController.Instance().IsKeyDown(65)) {
+        //     this.m_Transform.Rotate(this.m_RotationSpeed * delta, 0, 0);
+        //     this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationX(this.m_RotationSpeed * delta));
+        //     this.SetLookAtDirection(this.Back);
+        //     console.log(this.Front, this.m_Transform.m_LocalEulerAngles.x);
+        // }
 
-        if (InputController.Instance().IsKeyDown(68)) {
-            this.m_Transform.Rotate(this.m_RotationSpeed * -delta, 0, 0);
-            this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationX(-this.m_RotationSpeed * delta));
-            this.SetLookAtDirection(this.Back);
-            console.log(this.Front, this.m_Transform.m_LocalEulerAngles.x);
-        }
+        // if (InputController.Instance().IsKeyDown(68)) {
+        //     this.m_Transform.Rotate(this.m_RotationSpeed * -delta, 0, 0);
+        //     this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationX(-this.m_RotationSpeed * delta));
+        //     this.SetLookAtDirection(this.Back);
+        //     console.log(this.Front, this.m_Transform.m_LocalEulerAngles.x);
+        // }
 
-        if (InputController.Instance().IsKeyDown(87)) {
-            this.m_Transform.Rotate(0, this.m_RotationSpeed * delta, 0);
-            this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationY(this.m_RotationSpeed * delta));
-            this.SetLookAtDirection(this.Back);
-        }
+        // if (InputController.Instance().IsKeyDown(87)) {
+        //     this.m_Transform.Rotate(0, this.m_RotationSpeed * delta, 0);
+        //     this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationY(this.m_RotationSpeed * delta));
+        //     this.SetLookAtDirection(this.Back);
+        // }
 
-        if (InputController.Instance().IsKeyDown(83)) {
-            this.m_Transform.Rotate(0, this.m_RotationSpeed * -delta, 0);
-            this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationY(-this.m_RotationSpeed * delta));
-            this.SetLookAtDirection(this.Back);
-        }
+        // if (InputController.Instance().IsKeyDown(83)) {
+        //     this.m_Transform.Rotate(0, this.m_RotationSpeed * -delta, 0);
+        //     this.m_Transformation = this.m_Transformation.multiplyMat4(Mat4.RotationY(-this.m_RotationSpeed * delta));
+        //     this.SetLookAtDirection(this.Back);
+        // }
 
-        if (InputController.Instance().IsKeyDown(17)) {
-            this.m_Transform.Translate(this.Back.Mult(delta * this.m_TranslationSpeed));
-        }
+        // if (InputController.Instance().IsKeyDown(17)) {
+        //     this.m_Transform.Translate(this.Back.Mult(delta * this.m_TranslationSpeed));
+        // }
 
-        if (InputController.Instance().IsKeyDown(32)) {
-            this.m_Transform.Translate(this.Front.Mult(delta * this.m_TranslationSpeed));
-        }
+        // if (InputController.Instance().IsKeyDown(32)) {
+        //     this.m_Transform.Translate(this.Front.Mult(delta * this.m_TranslationSpeed));
+        // }
 
         this.SetLookAtDirection(this.Back);
         // if (this.following) this.SetLookAt(this.following.Transform.m_Position);
@@ -191,6 +198,10 @@ module.exports = class Camera {
         up.z = Math.cos(pitch) * Math.sin(yaw);
 
         return up.Normalize();
+    }
+
+    Contains(v1){
+        return this.m_Bounds.Contains(v1);
     }
 
     get Right() {

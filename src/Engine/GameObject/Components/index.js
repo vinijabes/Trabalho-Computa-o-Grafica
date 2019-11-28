@@ -5,5 +5,7 @@ module.exports = {
     RigidBody: require('./RigidBody'),
     SphereCollider: require('./SphereCollider'),
     SphereRenderer: require('./SphereRenderer'),
-    Transform: require('./Transform')
+    Transform: require('./Transform'),
+    PixelRenderer: require('./PixelRenderer'),
+    LineRenderer: require('./LineRenderer'),
 }

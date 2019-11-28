@@ -46,11 +46,17 @@ class Transform extends MonoBehavior {
         if (this.m_HasChanged) {
             this._BuildTransformationMatrix();
             this.m_HasChanged = false;
+        }else{
+            this._BuildTransformationMatrix();
         }
     }
 
     _BuildTransformationMatrix() {
-        this.m_TransformationMatrix = Mat4.Scale(this.m_Scale.x, this.m_Scale.y, this.m_Scale.z, this.m_Scale.w).multiplyMat4(this.m_Rotation).multiplyMat4(Mat4.Translation(this.m_Position.x, this.m_Position.y, this.m_Position.z));
+        if(this.m_Parent){            
+            this.m_TransformationMatrix = this.m_Parent.m_TransformationMatrix.multiplyMat4(Mat4.Scale(this.m_Scale.x, this.m_Scale.y, this.m_Scale.z, this.m_Scale.w).multiplyMat4(this.m_Rotation).multiplyMat4(Mat4.Translation(this.m_Position.x, this.m_Position.y, this.m_Position.z)));
+        }
+        else
+            this.m_TransformationMatrix = Mat4.Scale(this.m_Scale.x, this.m_Scale.y, this.m_Scale.z, this.m_Scale.w).multiplyMat4(this.m_Rotation).multiplyMat4(Mat4.Translation(this.m_Position.x, this.m_Position.y, this.m_Position.z));
     }
 
     get Up() { return Vec3.Up().multiplyMat4(this.m_Rotation).Normalize(); }
@@ -64,13 +70,15 @@ class Transform extends MonoBehavior {
         this.m_LocalEulerAngles.y += yAngle;
         this.m_LocalEulerAngles.z += zAngle;
 
-        const X1 = Mat4.RotationX(this.m_LocalEulerAngles.x);
-        const Z2 = Mat4.RotationZ(this.m_LocalEulerAngles.y);
-        const X3 = Mat4.RotationX(this.m_LocalEulerAngles.z);
+        if (!relativeTo) relativeTo = new Vec3(0, 0, 0);
+
+        const X1 = Mat4.RotationX(this.m_LocalEulerAngles.x, relativeTo.x, relativeTo.y, relativeTo.z);
+        const Z2 = Mat4.RotationZ(this.m_LocalEulerAngles.y, relativeTo.x, relativeTo.y, relativeTo.z);
+        const X3 = Mat4.RotationX(this.m_LocalEulerAngles.z, relativeTo.x, relativeTo.y, relativeTo.z);
 
         const RotationMatrix = X1.multiplyMat4(Z2).multiplyMat4(X3);
         this.m_LocalRotation = RotationMatrix;
-        if (this.m_Parent) this.m_Rotation = this.m_Parent.m_Rotation.multiplyMat4(this.m_LocalRotation);
+        if (this.m_Parent) this.m_Rotation = this.m_LocalRotation// this.m_Parent.m_Rotation.multiplyMat4(this.m_LocalRotation);
         else this.m_Rotation = this.m_LocalRotation;
     }
 
@@ -86,7 +94,7 @@ class Transform extends MonoBehavior {
 
         const RotationMatrix = X1.multiplyMat4(Z2).multiplyMat4(X3);
         this.m_LocalRotation = RotationMatrix;
-        if (this.m_Parent) this.m_Rotation = this.m_Parent.m_Rotation.multiplyMat4(this.m_LocalRotation);
+        if (this.m_Parent) this.m_Rotation = this.m_LocalRotation;//this.m_Parent.m_Rotation.multiplyMat4(this.m_LocalRotation);
         else this.m_Rotation = this.m_LocalRotation;
     }
 

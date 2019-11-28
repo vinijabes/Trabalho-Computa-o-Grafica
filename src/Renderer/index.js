@@ -3,5 +3,6 @@ module.exports = {
     Shader: require('./Shader'),
     VertexArray: require('./VertexArray'),
     Window: require('./Window'),
-    Camera: require('./Camera')
+    Camera: require('./Camera'),
+    CavaleiraCamera: require('./CavaleiraCamera'),
 }
