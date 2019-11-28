@@ -252,7 +252,7 @@ TestObject.Transform.Scale(1, 1, 1, 1 / 4);
 TestObject.Transform
 
 let camera = new CavaleiraCamera();
-let projection = () => {  
+let projection = () => {
   return Mat4.Cavaleira();
   return Mat4.OrthoFrustum(-1.0, 1.0, -1.0, 1.0, 0.1, 1000);
   //return Mat4.Perspective(45, 1, 0.1, 1000)
@@ -579,8 +579,9 @@ let windowObject = null;
 c.onmouseup = (e) => {
   end.x = e.offsetX - CanvasContext.Width / 2;
   end.y = -(e.offsetY - CanvasContext.Height / 2);
-
-  if (!settingWindow) {
+  initial = {};
+  return;
+  if (!settingWindow) { 
     if (selectedOption == 1) {
       select.AddOption('Linha', g);
     } else if (selectedOption == 2) {
@@ -609,6 +610,8 @@ c.onmouseup = (e) => {
 }
 
 c.onmousemove = (e) => {
+  if (initial.x && initial.y)
+    SW.AddPoint(new Vec3(e.offsetX - CanvasContext.Width / 2, -(e.offsetY - CanvasContext.Height / 2), 0));
   return;
   if (settingWindow && initial.x && initial.y) {
     let v3I = new Vec3(initial.x, initial.y, 0);

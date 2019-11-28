@@ -46,17 +46,19 @@ class Transform extends MonoBehavior {
         if (this.m_HasChanged) {
             this._BuildTransformationMatrix();
             this.m_HasChanged = false;
-        }else{
+        } else {
             this._BuildTransformationMatrix();
         }
     }
 
     _BuildTransformationMatrix() {
-        if(this.m_Parent){            
+        if (!this.GameObject) return;
+
+        if (this.m_Parent) {
             this.m_TransformationMatrix = this.m_Parent.m_TransformationMatrix.multiplyMat4(Mat4.Scale(this.m_Scale.x, this.m_Scale.y, this.m_Scale.z, this.m_Scale.w).multiplyMat4(this.m_Rotation).multiplyMat4(Mat4.Translation(this.m_Position.x, this.m_Position.y, this.m_Position.z)));
         }
         else
-            this.m_TransformationMatrix = Mat4.Scale(this.m_Scale.x, this.m_Scale.y, this.m_Scale.z, this.m_Scale.w).multiplyMat4(this.m_Rotation).multiplyMat4(Mat4.Translation(this.m_Position.x, this.m_Position.y, this.m_Position.z));
+            this.m_TransformationMatrix = Mat4.Translation(-this.GameObject.m_Center.x, -this.GameObject.m_Center.y, -this.GameObject.m_Center.z).multiplyMat4(Mat4.Scale(this.m_Scale.x, this.m_Scale.y, this.m_Scale.z, this.m_Scale.w)).multiplyMat4(this.m_Rotation).multiplyMat4(Mat4.Translation(this.GameObject.m_Center.x, this.GameObject.m_Center.y, this.GameObject.m_Center.z)).multiplyMat4(Mat4.Translation(this.m_Position.x, this.m_Position.y, this.m_Position.z));
     }
 
     get Up() { return Vec3.Up().multiplyMat4(this.m_Rotation).Normalize(); }
